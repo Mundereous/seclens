@@ -1,6 +1,6 @@
 # SecLens
 
-**Open-weight AI güvenlik asistanı** — Türkçe smishing/phishing analizi + eğitim amaçlı mini-SAST (kod tarama).
+**Open-weight AI güvenlik asistanı** — Türkçe smishing/phishing, eğitim amaçlı mini-SAST ve login/e-posta screenshot analizi.
 
 Hacktoberfest 2026 · [Best Open-Source AI Project](https://www.mlh.com/opensource-ai)  
 Repo: [github.com/Mundereous/seclens](https://github.com/Mundereous/seclens)
@@ -16,7 +16,7 @@ Repo: [github.com/Mundereous/seclens](https://github.com/Mundereous/seclens)
 
 ## Screenshots
 
-### 1 · Ana ekran (Mod 1)
+### 1 · Ana ekran
 
 ![SecLens home](docs/screenshots/01_home.png)
 
@@ -48,6 +48,18 @@ Repo: [github.com/Mundereous/seclens](https://github.com/Mundereous/seclens)
 
 ![Code IDOR](docs/screenshots/08_code_idor.png)
 
+### 3 · Screenshot — sahte banka login (+ vision)
+
+![Screenshot phish bank](docs/screenshots/09_screenshot_phish_bank.png)
+
+### 3 · Screenshot — meşru tarzı login
+
+![Screenshot legit](docs/screenshots/10_screenshot_legit_style.png)
+
+### 3 · Screenshot — e-posta phishing örneği
+
+![Screenshot email phish](docs/screenshots/11_screenshot_email_phish.png)
+
 ---
 
 <a id="seclens-english"></a>
@@ -58,59 +70,48 @@ Repo: [github.com/Mundereous/seclens](https://github.com/Mundereous/seclens)
 | Mode | Status | Purpose |
 |------|--------|---------|
 | **1 · Text** | Ready | Turkish SMS/email → risk 0–100 + reasons + advice |
-| **2 · Code** | Ready | Mini-SAST: ~**185** OWASP/CWE rules (Bandit/Semgrep-inspired) |
-| **3 · Image** | Planned | Login-page screenshot phishing UI check |
+| **2 · Code** | Ready | Mini-SAST: ~**185** OWASP/CWE rules |
+| **3 · Image** | Ready | Screenshot phishing UI: checklist + URL/notes + **moondream** vision |
 
 ### Architecture (no fine-tuning)
 
-1. **Rules first** — most of the score comes from curated patterns (`core/scam_patterns.py`, `core/code_rules.py`).
-2. **Open-weight LLM** via [Ollama](https://ollama.com) (`llama3.2:1b`) — Turkish explanations (Mode 1; Mode 2 optional narrative).
+1. **Rules first** — score mostly from curated patterns (`scam_patterns.py`, `code_rules.py`, screenshot checklist).
+2. **Open-weight LLM** via [Ollama](https://ollama.com):
+   - Text: [`llama3.2:1b`](https://ollama.com/library/llama3.2) — Turkish explanations  
+   - Vision (Mode 3): [`moondream`](https://ollama.com/library/moondream) — optional visual cues  
 
-We did **not** fine-tune model weights. “Training” = public scam/SAST patterns turned into detectable rules.
+No weight fine-tuning. “Training” = public scam/SAST patterns → detectable rules.
 
 ### Mode 1 — phishing / smishing (~400+ phrase signals)
 
-| Category | Examples | Demo |
-|----------|----------|------|
-| Fake bank / cargo | Block, “update”, fee + shady link | `phishing_*.txt` |
-| Fake prosecution / mediation | “last day”, “call now” | `scam_uzlastirma.txt` |
-| e-Devlet / public sector spoof | Suspended account + external link | `scam_edevlet.txt` |
-| IBAN / EFT / “Valilik onaylı” | Personal IBAN + urgency | `scam_iban_eft.txt`, `scam_valilik_iban.txt` |
-| Crypto / gift bait | Short link, “you won” | `scam_kripto.txt`, `scam_hediye_maket.txt` |
-| OTP + WhatsApp / AnyDesk | “send me the SMS code” | `scam_otp_whatsapp.txt` |
-| Fake tech support | Apple ID / Netflix “suspended” | `scam_tech_support.txt` |
-| Forex / investment | “guaranteed daily %” | `scam_invest_forex.txt` |
-| Safe controls | Meeting / friend texts | `safe_*.txt` |
-
-Also: suspicious TLDs, IP URLs, shorteners, TR phones/IBANs, lookalike hosts, login/verify URL paths, brand+link combos.  
-Extra buckets: KYC, telco/eSIM, CEO fraud, invoice/QR, refund bait, job/romance scams.
+Fake bank/cargo, prosecution SMS, e-Devlet spoof, IBAN/EFT, crypto, gift bait, OTP+WhatsApp/AnyDesk, tech support, forex, KYC, eSIM, CEO fraud, QR/invoice, lookalike URLs…  
+Demos: `examples/scam_*.txt`, `examples/safe_*.txt`.
 
 ### Mode 2 — mini-SAST (~185 rules)
 
-OWASP Top 10–oriented regex + small multi-line windows (IDOR) + XML alias tracking:
+Secrets, SQLi/RCE/XSS, IDOR, XXE, pickle/yaml, Trojan Source (CVE-2021-42574), Twisted/httpoxy, weak password hashing…  
+Samples: `examples/code/01`–`15` + Bandit under `examples/code/external/`.
 
-| Family | Examples |
-|--------|----------|
-| Secrets / crypto | Hardcoded keys, MD5/SHA1 passwords, weak TLS, JWT `none` |
-| Injection | SQLi (Python/PHP/JS/Java/…), RCE, SSTI, LDAP, XSS |
-| Access control | IDOR, mass assignment, path traversal, zip/tar slip |
-| Deserialization | pickle, yaml.load, marshal, Java/`BinaryFormatter` |
-| XXE | `xml.sax` / etree / minidom (+ `defusedxml` excluded) |
-| Misconfig | Flask debug, CORS, CGI/httpoxy, Docker privileged |
-| Trojan Source | Unicode bidi (CVE-2021-42574) |
+### Mode 3 — screenshot phishing UI
 
-Samples: `examples/code/01`–`15` + Bandit files under `examples/code/external/`.
+1. Upload PNG/JPG or pick a demo / quiz-style email screenshot  
+2. Fill **URL bar** + **checklist** (urgency, lookalike domain, CVV/OTP, …)  
+3. Optional **moondream** vision pass  
+4. Score + Turkish advice  
+
+Samples: `examples/screenshots/` (synthetic logins + educational email quiz set under `examples/screenshots/altay/`).
 
 ### Model & deps
 
 | Piece | Detail |
 |-------|--------|
-| Model | [`llama3.2:1b`](https://ollama.com/library/llama3.2) (small LM for the challenge) |
+| Text model | [`llama3.2:1b`](https://ollama.com/library/llama3.2) |
+| Vision model | [`moondream`](https://ollama.com/library/moondream) (Mode 3) |
 | Runtime | Ollama `http://127.0.0.1:11434` |
-| Model license | [Llama 3.2 Community](https://www.llama.com/llama3_2/license/) |
-| UI | Streamlit · HTTP `requests` · Pillow (Mode 3 later) |
+| Licenses | [Llama 3.2 Community](https://www.llama.com/llama3_2/license/) · moondream per Ollama/model card |
+| UI | Streamlit · `requests` · Pillow |
 
-Repo license **MIT**; model license stays with Meta. Weights are **not** in this repo.
+Repo: **MIT**. Model weights are **not** vendored.
 
 ### Quick start
 
@@ -119,10 +120,11 @@ git clone https://github.com/Mundereous/seclens.git
 cd seclens
 python3 -m pip install -r requirements.txt
 ollama pull llama3.2:1b
+ollama pull moondream          # Mode 3 vision (optional but recommended)
 streamlit run app.py
 ```
 
-Open **http://127.0.0.1:8501** → Mode 1 **Analiz et** or Mode 2 **Tara**.
+Open **http://127.0.0.1:8501** → Mode 1 **Analiz et** · Mode 2 **Tara** · Mode 3 **Görüntüyü analiz et**.
 
 ---
 
@@ -133,23 +135,16 @@ Open **http://127.0.0.1:8501** → Mode 1 **Analiz et** or Mode 2 **Tara**.
 
 | Mod | Durum | Ne yapar |
 |-----|--------|----------|
-| **1 · Metin** | Hazır | Türkçe SMS/e-posta → risk + gerekçe + öneri (**~400+** kalıp) |
+| **1 · Metin** | Hazır | Türkçe SMS/e-posta → risk + gerekçe (**~400+** kalıp) |
 | **2 · Kod** | Hazır | Mini-SAST (**~185** OWASP/CWE kuralı) |
-| **3 · Görüntü** | Yakında | Login screenshot phishing UI |
+| **3 · Görüntü** | Hazır | Screenshot: checklist + URL + **moondream** vision |
 
 ### Nasıl çalışıyor?
 
-- **Kurallar** skoru belirler (phishing + kod).  
-- **Ollama + llama3.2:1b** Türkçe açıklama üretir.  
-- **Fine-tune yok** — kamu uyarıları + Bandit/Semgrep kalıplarından kural seti.
-
-### Mod 1 — neler eklendi?
-
-Uzlaştırma, e-Devlet, kargo/gümrük, kripto, IBAN/valilik, hediye spam’e ek olarak: **OTP/WhatsApp/AnyDesk**, **tech support**, **forex**, KYC, eSIM, CEO fraud, QR/fatura, lookalike URL vb.
-
-### Mod 2 — neler eklendi?
-
-Secret/SQLi/XSS’ten IDOR, PHP SQLi, parola+MD5, XXE (`xml.sax`), Trojan Source, Twisted/httpoxy, tar slip, JWT, CORS… Bandit örnekleriyle karşılaştırılabilir.
+- Skorun çoğu **kurallardan** gelir.  
+- **llama3.2:1b** Türkçe gerekçe yazar.  
+- **moondream** (kuruluysa) görsele bakar.  
+- Fine-tune yok.
 
 ### Kurulum
 
@@ -158,6 +153,7 @@ git clone https://github.com/Mundereous/seclens.git
 cd seclens
 python3 -m pip install -r requirements.txt
 ollama pull llama3.2:1b
+ollama pull moondream
 streamlit run app.py
 ```
 
@@ -167,31 +163,29 @@ streamlit run app.py
 
 ```
 seclens/
-├── app.py                      # Streamlit UI (3 tabs)
+├── app.py
 ├── requirements.txt
-├── LICENSE                     # MIT
+├── LICENSE
 ├── README.md
-├── DEMO-SUNUM-NOTLARI.md
-├── KOD-TEST-REHBERI.md
-├── HACKTOBERFEST-BAGLAM.md
-├── docs/screenshots/           # README captures
-├── scripts/capture_screenshots.py
+├── docs/screenshots/              # README UI captures (01–11)
+├── scripts/
+│   ├── capture_screenshots.py
+│   └── test_altay_quiz.py
 ├── core/
-│   ├── ollama_client.py
-│   ├── phishing.py             # Mod 1 score + LLM merge
-│   ├── scam_patterns.py        # TR phishing signals
-│   ├── code_rules.py           # Mod 2 RULES + scan_code
-│   └── code_scan.py            # Mod 2 analyze wrapper
+│   ├── phishing.py / scam_patterns.py
+│   ├── code_rules.py / code_scan.py
+│   ├── screenshot_scan.py
+│   └── ollama_client.py           # chat + chat_vision
 └── examples/
-    ├── scam_*.txt / safe_*.txt / phishing_*.txt
-    └── code/                   # 01–15 + Bandit external/
+    ├── scam_*.txt / safe_*.txt
+    ├── code/
+    └── screenshots/               # Mod 3 demos + quiz-style set
 ```
 
-Regenerate screenshots (app + Ollama running):
+Regenerate README screenshots (app + Ollama running):
 
 ```bash
-python3 -m pip install playwright
-python3 -m playwright install chromium
+python3 -m pip install playwright && python3 -m playwright install chromium
 python3 scripts/capture_screenshots.py
 ```
 
@@ -199,21 +193,19 @@ python3 scripts/capture_screenshots.py
 
 ## Challenge checklist
 
-- [x] Open-weight AI central (Ollama + Llama 3.2)  
+- [x] Open-weight AI central (Ollama + Llama 3.2 + moondream)  
 - [x] Public GitHub + [MIT](LICENSE)  
-- [x] README: what / how / model + deps + license + screenshots  
-- [x] Mode 1 phishing (expanded TR rules)  
-- [x] Mode 2 code mini-SAST (~185 rules)  
-- [ ] Mode 3 screenshot  
+- [x] README: what / how / models + deps + screenshots  
+- [x] Mode 1 / 2 / 3 working  
 - [ ] Optional cloud deploy  
 
 ---
 
 ## Ethics
 
-- Examples are **synthetic / anonymized** — no real victim PII dumps.  
-- Warn about patterns; no automated blocking or legal accusation.  
-- In Turkey, suspicious SMS → **5010**.
+- Text/code samples are **synthetic / anonymized**.  
+- Screenshot quiz-style images are for **education/awareness**; see `examples/screenshots/altay/README.md` for source attribution.  
+- No automated blocking or legal accusation. Suspicious SMS in TR → **5010**.
 
 ---
 
@@ -221,4 +213,4 @@ python3 scripts/capture_screenshots.py
 
 Code: [MIT](LICENSE) · Copyright (c) 2026 Mundereous  
 
-Model: Llama 3.2 Community License (Meta) — via Ollama, not stored in this repo.
+Models: via Ollama (not stored in this repo) — Llama 3.2 Community · moondream per upstream terms.

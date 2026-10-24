@@ -17,6 +17,12 @@ from core.code_rules import RULES
 from core.code_scan import analyze_code
 from core.ollama_client import DEFAULT_MODEL, OllamaError, is_ollama_up, list_models
 from core.phishing import analyze_text
+from core.screenshot_scan import (
+    CHECK_ITEMS,
+    analyze_screenshot,
+    image_to_png_bytes,
+    pick_vision_model,
+)
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 
@@ -284,10 +290,170 @@ with tab_code:
                         st.markdown(f"**Düzeltme:** {f.fix}")
 
 with tab_image:
-    st.subheader("Login ekranı screenshot")
-    st.info("Bu sekme en son doldurulacak (Mod 3 — daha zor).")
+    st.subheader("Login / e-posta screenshot (phishing UI)")
+    st.write(
+        "PNG/JPG yükle veya örnek seç. Skor **checklist + URL/not** ile çıkar; "
+        "kuruluysa Ollama vision (`moondream` / `llava`) görsele bakar, "
+        "yoksa metin modeli gerekçe yazar."
+    )
+
+    import json as _json
+
+    SCREENSHOT_EXAMPLES = {
+        "— örnek seç —": "",
+        "Demo · Sahte banka login": "screenshots/01_phish_fake_bank_login.png",
+        "Demo · Meşru tarzı login": "screenshots/02_legit_style_login.png",
+        "Demo · Sahte kargo/gümrük": "screenshots/03_phish_cargo_customs.png",
+    }
+    SCREENSHOT_URL_HINTS = {
+        "screenshots/01_phish_fake_bank_login.png": "http://garanti-guvenlik-dogrula.xyz/login?id=884",
+        "screenshots/02_legit_style_login.png": "https://www.example-bank.com.tr/giris",
+        "screenshots/03_phish_cargo_customs.png": "http://192.168.8.22/ptt-gumruk-odeme.top/pay",
+    }
+    SCREENSHOT_CHECK_HINTS = {
+        "screenshots/01_phish_fake_bank_login.png": {
+            "url_lookalike": True,
+            "no_https": True,
+            "urgency": True,
+            "ask_extra": True,
+            "spelling": True,
+            "unexpected_channel": True,
+        },
+        "screenshots/02_legit_style_login.png": {},
+        "screenshots/03_phish_cargo_customs.png": {
+            "url_lookalike": True,
+            "no_https": True,
+            "urgency": True,
+            "ask_extra": True,
+            "unexpected_channel": True,
+        },
+    }
+    SCREENSHOT_NOTE_HINTS: dict[str, str] = {}
+    SCREENSHOT_TRUTH: dict[str, str] = {}
+
+    _manifest_path = EXAMPLES_DIR / "screenshots" / "altay" / "manifest.json"
+    if _manifest_path.exists():
+        for item in _json.loads(_manifest_path.read_text(encoding="utf-8")):
+            path = item["path"]
+            tag = "PHISH" if item["correct"] == "phishing" else "GERÇEK"
+            label = f"Örnek {item['id']:02d} · {tag}"
+            SCREENSHOT_EXAMPLES[label] = path
+            SCREENSHOT_URL_HINTS[path] = item.get("url_hint") or ""
+            SCREENSHOT_CHECK_HINTS[path] = item.get("checked") or {}
+            SCREENSHOT_NOTE_HINTS[path] = item.get("notes") or ""
+            SCREENSHOT_TRUTH[path] = item["correct"]
+
+    ss_choice = st.selectbox(
+        "Hazır screenshot örnekleri",
+        list(SCREENSHOT_EXAMPLES.keys()),
+        key="ss_example_choice",
+    )
+    if st.button("Örneği yükle", key="load_ss_example"):
+        fname = SCREENSHOT_EXAMPLES.get(ss_choice, "")
+        if fname:
+            raw = (EXAMPLES_DIR / fname).read_bytes()
+            st.session_state["ss_bytes"] = image_to_png_bytes(raw)
+            st.session_state["ss_name"] = Path(fname).name
+            st.session_state["ss_url"] = SCREENSHOT_URL_HINTS.get(fname, "")
+            st.session_state["ss_notes"] = SCREENSHOT_NOTE_HINTS.get(fname, "")
+            st.session_state["ss_truth"] = SCREENSHOT_TRUTH.get(fname, "")
+            hints = SCREENSHOT_CHECK_HINTS.get(fname, {})
+            for cid, _, _ in CHECK_ITEMS:
+                st.session_state[f"ss_chk_{cid}"] = bool(hints.get(cid))
+
     uploaded = st.file_uploader("PNG / JPG yükle", type=["png", "jpg", "jpeg"])
     if uploaded is not None:
-        st.image(uploaded, caption="Önizleme", use_container_width=True)
-    if st.button("Görüntüyü analiz et (yakında)", key="btn_image", disabled=True):
-        st.write("Yakında")
+        st.session_state["ss_bytes"] = image_to_png_bytes(uploaded.getvalue())
+        st.session_state["ss_name"] = uploaded.name
+
+    if st.session_state.get("ss_bytes"):
+        st.image(
+            st.session_state["ss_bytes"],
+            caption=st.session_state.get("ss_name", "önizleme"),
+            use_container_width=True,
+        )
+
+    url_bar = st.text_input(
+        "Adres çubuğunda ne görüyorsun? (varsa yapıştır)",
+        key="ss_url",
+        placeholder="örn. http://garanti-guvenlik-dogrula.xyz/login",
+    )
+    notes = st.text_area(
+        "Ek not (opsiyonel)",
+        key="ss_notes",
+        height=80,
+        placeholder="SMS’ten geldim, logo bulanık, CVV istiyor…",
+    )
+
+    st.markdown("**Görsel checklist** (gördüklerini işaretle)")
+    checked: dict[str, bool] = {}
+    cols = st.columns(2)
+    for i, (cid, label, _) in enumerate(CHECK_ITEMS):
+        with cols[i % 2]:
+            checked[cid] = st.checkbox(label, key=f"ss_chk_{cid}")
+
+    vision_available = pick_vision_model() if ollama_ok else None
+    if vision_available:
+        st.caption(f"Vision model bulundu: `{vision_available}` (opsiyonel kullanılacak)")
+        use_vision = st.checkbox("Vision modeli kullan", value=True, key="ss_use_vision")
+    else:
+        st.caption(
+            "Vision model yok — checklist + metin LLM yeterli. "
+            "İstersen: `ollama pull moondream`"
+        )
+        use_vision = False
+
+    run_ss = st.button(
+        "Görüntüyü analiz et",
+        type="primary",
+        key="btn_image",
+        disabled=not st.session_state.get("ss_bytes"),
+    )
+    if run_ss:
+        with st.spinner("Screenshot analiz ediliyor…"):
+            result = analyze_screenshot(
+                st.session_state["ss_bytes"],
+                url_bar=url_bar or "",
+                notes=notes or "",
+                checked=checked,
+                filename=st.session_state.get("ss_name", ""),
+                model=st.session_state.get("model", DEFAULT_MODEL),
+                use_vision=use_vision,
+            )
+        label, emoji = RISK_LABEL.get(result.risk, (result.risk, ""))
+        st.markdown(f"### {emoji} {label}")
+        st.write(
+            f"**Skor:** {result.skor}/100 (kural: {result.kural_skoru})"
+            + (
+                f" · vision: `{result.vision_model}`"
+                if result.vision_used
+                else " · vision: kapalı"
+            )
+        )
+        st.progress(min(100, max(0, result.skor)) / 100.0)
+        st.markdown("**Gerekçeler**")
+        for g in result.gerekceler:
+            st.markdown(f"- {g}")
+        st.markdown("**Öneriler**")
+        for o in result.oneriler:
+            st.markdown(f"- {o}")
+        if result.findings:
+            with st.expander("Checklist bulguları"):
+                for f in result.findings:
+                    st.markdown(f"- **{f.title}** (+{f.weight}) — {f.detail}")
+        truth = st.session_state.get("ss_truth") or ""
+        if truth:
+            pred = "phishing" if result.skor >= 40 else "real"
+            if pred == truth:
+                st.success(
+                    f"Beklenen etiket ile uyumlu: **{truth}**, SecLens skoru {result.skor}."
+                )
+            else:
+                st.warning(
+                    f"Beklenen **{truth}**, SecLens tahmini **{pred}** (skor {result.skor})."
+                )
+        if result.llm_status not in ("ok",):
+            st.caption(f"LLM durumu: {result.llm_status}")
+            if result.ham:
+                with st.expander("Ham çıktı / hata"):
+                    st.code(result.ham[:2000])

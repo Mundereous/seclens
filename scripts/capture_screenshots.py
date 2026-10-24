@@ -37,6 +37,16 @@ def open_tab(page, label: str) -> None:
     page.wait_for_timeout(800)
 
 
+def pick_select_option(page, option_label: str) -> None:
+    """Streamlit selectbox (Baseweb) — tıkla + seçeneği seç."""
+    # Görüntü sekmesindeki ilk/ana selectbox
+    combo = page.locator('[data-baseweb="select"]').first
+    combo.click()
+    page.wait_for_timeout(400)
+    page.get_by_role("option", name=option_label).click()
+    page.wait_for_timeout(400)
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
 
@@ -130,6 +140,80 @@ def main() -> None:
         page.wait_for_selector("text=Risk skoru:", timeout=60000)
         page.wait_for_timeout(1000)
         page.screenshot(path=str(OUT / "08_code_idor.png"), full_page=True)
+
+        def run_mod3(
+            *,
+            image: Path,
+            url: str,
+            notes: str,
+            checks: list[str],
+            out_name: str,
+        ) -> None:
+            page.reload(wait_until="networkidle")
+            page.wait_for_selector("text=SecLens")
+            page.wait_for_timeout(2000)
+            open_tab(page, "3 · Görüntü (screenshot)")
+            page.wait_for_timeout(1000)
+            page.locator('input[type="file"]').set_input_files(str(image))
+            page.wait_for_timeout(1200)
+            page.get_by_label("Adres çubuğunda ne görüyorsun? (varsa yapıştır)").fill(
+                url
+            )
+            page.get_by_label("Ek not (opsiyonel)").fill(notes)
+            for label in checks:
+                box = page.get_by_label(label)
+                if box.count():
+                    try:
+                        box.check()
+                    except Exception:
+                        pass
+            vis = page.get_by_label("Vision modeli kullan")
+            if vis.count():
+                try:
+                    if not vis.is_checked():
+                        vis.check()
+                except Exception:
+                    pass
+            click_named(page, "Görüntüyü analiz et")
+            page.wait_for_selector("text=Skor:", timeout=300000)
+            page.wait_for_timeout(1500)
+            page.screenshot(path=str(OUT / out_name), full_page=True)
+
+        # 09 — Mod 3: sahte banka
+        run_mod3(
+            image=EXAMPLES / "screenshots" / "01_phish_fake_bank_login.png",
+            url="http://garanti-guvenlik-dogrula.xyz/login?id=884",
+            notes="SMS linkinden geldim; CVV ve OTP istiyor",
+            checks=[
+                "Adres çubuğunda marka taklidi / garip domain (xyz, IP, ek kelime)",
+                "Kilit / HTTPS yok veya tarayıcı uyarıyor",
+                "Ekranda aciliyet / korku dili (bloke, son 24 saat, hemen doğrula)",
+                "CVV / OTP / kimlik fotoğrafı / seed phrase istiyor",
+            ],
+            out_name="09_screenshot_phish_bank.png",
+        )
+
+        # 10 — Mod 3: meşru tarzı
+        run_mod3(
+            image=EXAMPLES / "screenshots" / "02_legit_style_login.png",
+            url="https://www.example-bank.com.tr/giris",
+            notes="",
+            checks=[],
+            out_name="10_screenshot_legit_style.png",
+        )
+
+        # 11 — Mod 3: e-posta phishing örneği
+        run_mod3(
+            image=EXAMPLES / "screenshots" / "altay" / "resim09_phishing.png",
+            url="http://ptt-kargotakip.xyz/takip",
+            notes="Gönderici PTT gibi ama domain .xyz; kargo takip tuzağı",
+            checks=[
+                "Adres çubuğunda marka taklidi / garip domain (xyz, IP, ek kelime)",
+                "Kilit / HTTPS yok veya tarayıcı uyarıyor",
+                "Banka/kargo için beklenmeyen kanal (SMS linkinden açıldı)",
+            ],
+            out_name="11_screenshot_email_phish.png",
+        )
 
         browser.close()
 

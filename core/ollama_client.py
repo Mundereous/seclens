@@ -97,3 +97,64 @@ def chat(
 
     data = r.json()
     return data.get("message", {}).get("content", "").strip()
+
+
+def chat_vision(
+    prompt: str,
+    *,
+    images_b64: list[str],
+    model: str,
+    system: str | None = None,
+    timeout: float = 90.0,
+    temperature: float = 0.1,
+    num_predict: int = 180,
+) -> str:
+    """
+    Vision-capable Ollama modeli (llava / moondream …).
+    images_b64: ham görüntü base64 (data-URI öneki olmadan).
+    """
+    if not images_b64:
+        raise OllamaError("Vision için en az bir görüntü gerekli.")
+
+    messages: list[dict] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append(
+        {
+            "role": "user",
+            "content": prompt,
+            "images": images_b64,
+        }
+    )
+
+    payload = {
+        "model": model.strip(),
+        "messages": messages,
+        "stream": False,
+        "options": {
+            "temperature": temperature,
+            "num_predict": num_predict,
+            "num_ctx": 2048,
+        },
+    }
+    try:
+        r = requests.post(
+            f"{OLLAMA_URL}/api/chat",
+            json=payload,
+            timeout=timeout,
+        )
+    except requests.Timeout as e:
+        raise OllamaError(
+            f"Vision model zaman aşımı ({timeout:.0f}s, {model})."
+        ) from e
+    except requests.RequestException as e:
+        raise OllamaError(f"Ollama vision çağrısı başarısız: {e}") from e
+
+    if r.status_code >= 400:
+        detail = (r.text or "")[:300]
+        raise OllamaError(
+            f"Vision HTTP {r.status_code} ({model}): {detail or 'boş'}"
+        )
+
+    data = r.json()
+    return data.get("message", {}).get("content", "").strip()

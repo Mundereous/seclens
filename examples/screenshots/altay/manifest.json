@@ -1,0 +1,437 @@
+[
+  {
+    "id": 1,
+    "file": "resim01_phishing.png",
+    "path": "screenshots/altay/resim01_phishing.png",
+    "correct": "phishing",
+    "explanation": "Dikkat ederseniz bağlantının üzerinde ki adresin VİSA'ya ait olmadığını göreceksiniz.",
+    "url_hint": "",
+    "notes": "Dikkat ederseniz bağlantının üzerinde ki adresin VİSA'ya ait olmadığını göreceksiniz.",
+    "checked": {
+      "url_lookalike": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 2,
+    "file": "resim02_phishing.png",
+    "path": "screenshots/altay/resim02_phishing.png",
+    "correct": "phishing",
+    "explanation": "E-posta göndericisinin alan adı doğru ama bağlantıdaki alan adı yanlış",
+    "url_hint": "",
+    "notes": "E-posta göndericisinin alan adı doğru ama bağlantıdaki alan adı yanlış",
+    "checked": {
+      "url_lookalike": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 3,
+    "file": "resim03_phishing.png",
+    "path": "screenshots/altay/resim03_phishing.png",
+    "correct": "phishing",
+    "explanation": "Bu açık bir kimlik avı girişimi: Gönderici adresi PayPal değil PayPAUL",
+    "url_hint": "",
+    "notes": "Bu açık bir kimlik avı girişimi: Gönderici adresi PayPal değil PayPAUL",
+    "checked": {
+      "url_lookalike": true,
+      "ask_extra": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 4,
+    "file": "resim04_phishing.png",
+    "path": "screenshots/altay/resim04_phishing.png",
+    "correct": "phishing",
+    "explanation": "Burada dolandırıcılar, kullanıcıları kandırıp harakete geçmeye teşvik etmek için yaygın olarak kullanılan bir tekniğe başvurmuş ve durumun aciliyetini vurgulamaış. Hedefini iletişimidevam ettirmek için telefon numarsı vererek sömürmeye çalışılıyor",
+    "url_hint": "",
+    "notes": "Burada dolandırıcılar, kullanıcıları kandırıp harakete geçmeye teşvik etmek için yaygın olarak kullanılan bir tekniğe başvurmuş ve durumun aciliyetini vurgulamaış. Hedefini iletişimidevam ettirmek için telefon numarsı vererek sömürmeye çalışılıyor",
+    "checked": {
+      "urgency": true,
+      "unexpected_channel": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 5,
+    "file": "resim05_phishing.png",
+    "path": "screenshots/altay/resim05_phishing.png",
+    "correct": "phishing",
+    "explanation": "Yukardaki word dosyasında, dos komutu içerebilen (Word Markoları olarak da bilinen) tehlikeli bir eklentiye sahip kimlik avı e-postasıdır. Ayrıca, alan adına bakarak bunun bir kimlik avı girişimi olduğunu tespit edebilirsiniz, alan adında apple yerine apple-itunes365.cn yazıyor",
+    "url_hint": "http://apple-itunes365.cn",
+    "notes": "Yukardaki word dosyasında, dos komutu içerebilen (Word Markoları olarak da bilinen) tehlikeli bir eklentiye sahip kimlik avı e-postasıdır. Ayrıca, alan adına bakarak bunun bir kimlik avı girişimi olduğunu tespit edebilirsiniz, alan adında apple yerine apple-itunes365.cn yazıyor",
+    "checked": {
+      "url_lookalike": true,
+      "unexpected_channel": true,
+      "ask_extra": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 6,
+    "file": "resim06_real.png",
+    "path": "screenshots/altay/resim06_real.png",
+    "correct": "real",
+    "explanation": "Gönderici bilgisi doğru, eklerde şüpheli bir durum yok. Bu meşru bir Dropbox iletişimi. Gönderen 'dropboxmail.com'. Alışılmadık olmakla birlikte meşru olan bu URL, 'dropbox.com'a yönlendiren güvenli bir bağlantı (https).",
+    "url_hint": "https://dropboxmail.com",
+    "notes": "Gönderici bilgisi doğru, eklerde şüpheli bir durum yok. Bu meşru bir Dropbox iletişimi. Gönderen 'dropboxmail.com'. Alışılmadık olmakla birlikte meşru olan bu URL, 'dropbox.com'a yönlendiren güvenli bir bağlantı (https).",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 7,
+    "file": "resim07_phishing.png",
+    "path": "screenshots/altay/resim07_phishing.png",
+    "correct": "phishing",
+    "explanation": "Kimlik avi yapan bu kişi, açil bir durum olduğunu vurgulayarak kulalnıcıya korkutmaya çalışıyor. 2 adımlı doğrulama kodunu, anlık olarak başlattığınız doğrulama süreci (ör. web sitesine giriş yaparken veya bankanızla telefonda konuşurken) haricinde hiçbir yerde paylaşmayın. Mümkün olduğunda, geçiş anahtarları veya telefonu güvenlik anahtarı olarak kullanma gibi kimlik avına karşı korunaklı seçenekleri de göz önünde bulundurmalısınız.",
+    "url_hint": "",
+    "notes": "Kimlik avi yapan bu kişi, açil bir durum olduğunu vurgulayarak kulalnıcıya korkutmaya çalışıyor. 2 adımlı doğrulama kodunu, anlık olarak başlattığınız doğrulama süreci (ör. web sitesine giriş yaparken veya bankanızla telefonda konuşurken) haricinde hiçbir yerde paylaşmayın. Mümkü",
+    "checked": {
+      "urgency": true,
+      "unexpected_channel": true,
+      "ask_extra": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 8,
+    "file": "resim08_phishing.png",
+    "path": "screenshots/altay/resim08_phishing.png",
+    "correct": "phishing",
+    "explanation": "Dikkat ederseniz bağlantının üzerinde ki adresin doğru yere göndertmiyor ve Gönderici e-posta adresine daha yakından baktığınızda, bunun bir şirketten ziyade kişisel bir e-posta adresi olduğunu göreceksiniz.",
+    "url_hint": "",
+    "notes": "Dikkat ederseniz bağlantının üzerinde ki adresin doğru yere göndertmiyor ve Gönderici e-posta adresine daha yakından baktığınızda, bunun bir şirketten ziyade kişisel bir e-posta adresi olduğunu göreceksiniz.",
+    "checked": {
+      "url_lookalike": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 9,
+    "file": "resim09_phishing.png",
+    "path": "screenshots/altay/resim09_phishing.png",
+    "correct": "phishing",
+    "explanation": "Dikat ederseniz 'PTT-Noreply-YRJ3a2z@854876585847565.it' gerçek bir PTT adresi değil. Link üzerine gelindiğinde görülen 'ptt-kargotakip.xyz' adresi resmi PTT domain'i değil !!",
+    "url_hint": "https://854876585847565.it",
+    "notes": "Dikat ederseniz 'PTT-Noreply-YRJ3a2z@854876585847565.it' gerçek bir PTT adresi değil. Link üzerine gelindiğinde görülen 'ptt-kargotakip.xyz' adresi resmi PTT domain'i değil !!",
+    "checked": {
+      "url_lookalike": true,
+      "no_https": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 10,
+    "file": "resim10_phishing.png",
+    "path": "screenshots/altay/resim10_phishing.png",
+    "correct": "phishing",
+    "explanation": "Göndericinin adresi şüpeli, kişi burda FindMy kullanılarak iPhone'u izlendiğinde kullanıcının alacağı e-posta bildirimini taklit eder.",
+    "url_hint": "",
+    "notes": "Göndericinin adresi şüpeli, kişi burda FindMy kullanılarak iPhone'u izlendiğinde kullanıcının alacağı e-posta bildirimini taklit eder.",
+    "checked": {
+      "url_lookalike": true,
+      "unexpected_channel": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 11,
+    "file": "resim11_real.png",
+    "path": "screenshots/altay/resim11_real.png",
+    "correct": "real",
+    "explanation": "Gönderici bilgisi doğru, eklerde şüpheli bir durum yok. Yapılan bir satın alma işlemini kullanıcıya bildirir ve ayrıntılarını doğrular.",
+    "url_hint": "",
+    "notes": "Gönderici bilgisi doğru, eklerde şüpheli bir durum yok. Yapılan bir satın alma işlemini kullanıcıya bildirir ve ayrıntılarını doğrular.",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 12,
+    "file": "resim12_phishing.png",
+    "path": "screenshots/altay/resim12_phishing.png",
+    "correct": "phishing",
+    "explanation": "Gönderenin e-posta adresi şüpheli bir etki alanından (sharepoint.com) geliyor. Ve E-posta, cazip bir dosya indirmenizi istiyor. Dikkat!!!!!!",
+    "url_hint": "https://sharepoint.com",
+    "notes": "Gönderenin e-posta adresi şüpheli bir etki alanından (sharepoint.com) geliyor. Ve E-posta, cazip bir dosya indirmenizi istiyor. Dikkat!!!!!!",
+    "checked": {
+      "url_lookalike": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 13,
+    "file": "resim13_phishing.png",
+    "path": "screenshots/altay/resim13_phishing.png",
+    "correct": "phishing",
+    "explanation": "Burda saldırgan sizin hesabınızdan para çıkışı olucak iddası ile karşı tarafı korkutarak E-postadaki bağlantıya tıklayarak, kişisel bilgilerinizi çalmaya çalışıyor.",
+    "url_hint": "",
+    "notes": "Burda saldırgan sizin hesabınızdan para çıkışı olucak iddası ile karşı tarafı korkutarak E-postadaki bağlantıya tıklayarak, kişisel bilgilerinizi çalmaya çalışıyor.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true,
+      "unexpected_channel": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 14,
+    "file": "resim14_phishing.png",
+    "path": "screenshots/altay/resim14_phishing.png",
+    "correct": "phishing",
+    "explanation": "Selamlama geneldir. Bir devlet gelir kurumu, bir e-postada asla geri ödeme tutarı gibi belirli bir bilgi vermez. Ayrıca, mesajın altındaki Link üzerine gelindiğinde görülen 'vergiiade-gov.xyz' adresi resmi bir devlet kurumu domain'i değil",
+    "url_hint": "http://vergiiade-gov.xyz",
+    "notes": "Selamlama geneldir. Bir devlet gelir kurumu, bir e-postada asla geri ödeme tutarı gibi belirli bir bilgi vermez. Ayrıca, mesajın altındaki Link üzerine gelindiğinde görülen 'vergiiade-gov.xyz' adresi resmi bir devlet kurumu domain'i değil",
+    "checked": {
+      "url_lookalike": true,
+      "no_https": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 15,
+    "file": "resim15_phishing.png",
+    "path": "screenshots/altay/resim15_phishing.png",
+    "correct": "phishing",
+    "explanation": "'plop.co' gibi güvenilir olmayan bir domain adresi kullanılıyor ve acil karar vermeye zorlamak için bir süre sınırı belirlenmiş. Eğer verilen talimatları takip edip formu doldurursanız, kullanıcı kimliğiniz, şifreniz ve diğer hassas bilgilerinizi siber suçlulara ifşa etme riskiyle karşı karşıya kalırsınız.",
+    "url_hint": "https://plop.co",
+    "notes": "'plop.co' gibi güvenilir olmayan bir domain adresi kullanılıyor ve acil karar vermeye zorlamak için bir süre sınırı belirlenmiş. Eğer verilen talimatları takip edip formu doldurursanız, kullanıcı kimliğiniz, şifreniz ve diğer hassas bilgilerinizi siber suçlulara ifşa etme riskiyl",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true,
+      "unexpected_channel": true,
+      "ask_extra": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 16,
+    "file": "resim16_real.png",
+    "path": "screenshots/altay/resim16_real.png",
+    "correct": "real",
+    "explanation": "E-posta kişiselleştirilmiştir. Selamlama müşteri/şirket adını içerir. Doğrulama için kısmi bir hesap numarası verilir. Banka, politikasına uygun olarak, çevrimiçi bankacılık hizmetlerine bir köprü sağlamadığını, bunun yerine müşterileri her zamanki gibi oturum açmaya davet ettiğini belirtir. Kişisel bilgi talebi bulunmamaktadır.",
+    "url_hint": "",
+    "notes": "E-posta kişiselleştirilmiştir. Selamlama müşteri/şirket adını içerir. Doğrulama için kısmi bir hesap numarası verilir. Banka, politikasına uygun olarak, çevrimiçi bankacılık hizmetlerine bir köprü sağlamadığını, bunun yerine müşterileri her zamanki gibi oturum açmaya davet ettiği",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 17,
+    "file": "resim17_phishing.png",
+    "path": "screenshots/altay/resim17_phishing.png",
+    "correct": "phishing",
+    "explanation": "Gönderici adı doğru değil 'PayPal' olarak görünse de, aslında sahtedir Burda size bir para transferi oldu bildirimi yaparak korkutmaya çalışılmış bu şekilde kişisel bilgilerinizi çalmak amaclıyorlar. ",
+    "url_hint": "",
+    "notes": "Gönderici adı doğru değil 'PayPal' olarak görünse de, aslında sahtedir Burda size bir para transferi oldu bildirimi yaparak korkutmaya çalışılmış bu şekilde kişisel bilgilerinizi çalmak amaclıyorlar. ",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true,
+      "unexpected_channel": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 18,
+    "file": "resim18_phishing.png",
+    "path": "screenshots/altay/resim18_phishing.png",
+    "correct": "phishing",
+    "explanation": "Dikkat ederseniz gönderici adresi 'akbonk-guvenlik.com' (Akbank değil) ve size bir aciliyet oluşturan, korku ve endişeye yönelik bir mesaj barındırmış bu şekilde sizde o an hem linke tıklayıp hesap bilgilerinizi verebilirsiniz.",
+    "url_hint": "http://akbonk-guvenlik.com",
+    "notes": "Dikkat ederseniz gönderici adresi 'akbonk-guvenlik.com' (Akbank değil) ve size bir aciliyet oluşturan, korku ve endişeye yönelik bir mesaj barındırmış bu şekilde sizde o an hem linke tıklayıp hesap bilgilerinizi verebilirsiniz.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 19,
+    "file": "resim19_real.png",
+    "path": "screenshots/altay/resim19_real.png",
+    "correct": "real",
+    "explanation": "Gönderici bilgisi doğru, Bağlantı gerçek Microsoft Teams domain'ine yönlendiriyor",
+    "url_hint": "",
+    "notes": "Gönderici bilgisi doğru, Bağlantı gerçek Microsoft Teams domain'ine yönlendiriyor",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 20,
+    "file": "resim20_phishing.png",
+    "path": "screenshots/altay/resim20_phishing.png",
+    "correct": "phishing",
+    "explanation": "Gönderici adresi sahte (garantibbva-mobil.org) ve  Bağlantı resmi banka sitesine değil, sahte bir siteye yönlendiriyor. Bu şekilde siz başka bir yere bilgilerinizi girmiş oluyorsun.",
+    "url_hint": "http://garantibbva-mobil.org",
+    "notes": "Gönderici adresi sahte (garantibbva-mobil.org) ve  Bağlantı resmi banka sitesine değil, sahte bir siteye yönlendiriyor. Bu şekilde siz başka bir yere bilgilerinizi girmiş oluyorsun.",
+    "checked": {
+      "url_lookalike": true,
+      "unexpected_channel": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 21,
+    "file": "resim21_phishing.png",
+    "path": "screenshots/altay/resim21_phishing.png",
+    "correct": "phishing",
+    "explanation": "Bu bir oltalama SMS'idir Dikkat ederseniz Resmi olmayan domain uzantısı (.co). Aciliyet oluşturan, endişeye yönelik mesaj içeriği bulunmaktadır. Bu şekilde sizin hesap bilgilerinizi erişebilicek.",
+    "url_hint": "",
+    "notes": "Bu bir oltalama SMS'idir Dikkat ederseniz Resmi olmayan domain uzantısı (.co). Aciliyet oluşturan, endişeye yönelik mesaj içeriği bulunmaktadır. Bu şekilde sizin hesap bilgilerinizi erişebilicek.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 22,
+    "file": "resim22_phishing.png",
+    "path": "screenshots/altay/resim22_phishing.png",
+    "correct": "phishing",
+    "explanation": "Aciliyet oluşturan mesaj bulunmakta bu şekilde sizi endişeye sokmaktadrlar. Verilen linkin yönlendirmeside Güvenilir olmayan bir ödeme bağlantısına gönderiyor.",
+    "url_hint": "",
+    "notes": "Aciliyet oluşturan mesaj bulunmakta bu şekilde sizi endişeye sokmaktadrlar. Verilen linkin yönlendirmeside Güvenilir olmayan bir ödeme bağlantısına gönderiyor.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 23,
+    "file": "resim23_phishing.png",
+    "path": "screenshots/altay/resim23_phishing.png",
+    "correct": "phishing",
+    "explanation": "Bankalar genellikle SMS ile şifre sıfırlama bağlantısı göndermez, Acil eylem gerektiren tehdit içerikli mesaj bulunmakta ve  Şüpheli domain uzantısı (.xyz) bulunuyor sahte bir domaindir.",
+    "url_hint": "",
+    "notes": "Bankalar genellikle SMS ile şifre sıfırlama bağlantısı göndermez, Acil eylem gerektiren tehdit içerikli mesaj bulunmakta ve  Şüpheli domain uzantısı (.xyz) bulunuyor sahte bir domaindir.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true,
+      "ask_extra": true,
+      "no_https": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 24,
+    "file": "resim24_phishing.png",
+    "path": "screenshots/altay/resim24_phishing.png",
+    "correct": "phishing",
+    "explanation": "Bankanız limit değişikliklerini SMS üzerinden onaylatmaz. Görünürde doğru domain (akbank.com.tr) gösterilirken, gerçek URL farklı. Linklerin nereye yönlendirdiğine dikkat edin, önce kontrol edin.",
+    "url_hint": "http://akbank.com",
+    "notes": "Bankanız limit değişikliklerini SMS üzerinden onaylatmaz. Görünürde doğru domain (akbank.com.tr) gösterilirken, gerçek URL farklı. Linklerin nereye yönlendirdiğine dikkat edin, önce kontrol edin.",
+    "checked": {
+      "url_lookalike": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 25,
+    "file": "resim25_phishing.png",
+    "path": "screenshots/altay/resim25_phishing.png",
+    "correct": "phishing",
+    "explanation": "Aciliyet oluşturan zaman baskısı ('Son 2 saat!'). Gerçek dışı yüksek miktar ve Bağlantı sizi farklı bir siteye yönlendiriyor olabilir kontrol etmek lazım.",
+    "url_hint": "",
+    "notes": "Aciliyet oluşturan zaman baskısı ('Son 2 saat!'). Gerçek dışı yüksek miktar ve Bağlantı sizi farklı bir siteye yönlendiriyor olabilir kontrol etmek lazım.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 26,
+    "file": "resim26_phishing.png",
+    "path": "screenshots/altay/resim26_phishing.png",
+    "correct": "phishing",
+    "explanation": "PTT kargo takip numarası formatı yanlış verilmiş. Normalde Kargo teslim edilememe durumunda ödeme talep edilmez",
+    "url_hint": "http://ptt-kargotakip.xyz/odeme",
+    "notes": "PTT kargo takip numarası formatı yanlış verilmiş. Normalde Kargo teslim edilememe durumunda ödeme talep edilmez",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true,
+      "unexpected_channel": true,
+      "ask_extra": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 27,
+    "file": "resim27_real.png",
+    "path": "screenshots/altay/resim27_real.png",
+    "correct": "real",
+    "explanation": "Gönderici adı doğru formatta, Resmi banka domain'i bulunmaktadır ve Enpara'dan gelen rutin bir bilgilendirmedir. Hesabınıza yapılan transferi gösterir.",
+    "url_hint": "",
+    "notes": "Gönderici adı doğru formatta, Resmi banka domain'i bulunmaktadır ve Enpara'dan gelen rutin bir bilgilendirmedir. Hesabınıza yapılan transferi gösterir.",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 28,
+    "file": "resim28_phishing.png",
+    "path": "screenshots/altay/resim28_phishing.png",
+    "correct": "phishing",
+    "explanation": "Yüksek miktarlı sahte işlem bildirimi ile Korku ve panik yaratarak acil eylem talep etmeye çalışıyor. 'isbank-tr.com' gibi resmi olmayan alan adı bunmakta.",
+    "url_hint": "http://isbank-tr.com",
+    "notes": "Yüksek miktarlı sahte işlem bildirimi ile Korku ve panik yaratarak acil eylem talep etmeye çalışıyor. 'isbank-tr.com' gibi resmi olmayan alan adı bunmakta.",
+    "checked": {
+      "url_lookalike": true,
+      "urgency": true,
+      "unexpected_channel": true
+    },
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 29,
+    "file": "resim29_real.png",
+    "path": "screenshots/altay/resim29_real.png",
+    "correct": "real",
+    "explanation": "Dikkat ederseniz gönderen adres @amazon.com.tr uzantılıdır, Tüm bağlantılar amazon.com.tr alan adına yönlenmektedir. Büyük şirketler, resmi e-postalarında 'Sayın [Adınız]' gibi kişisel hitaplar kullanır.",
+    "url_hint": "https://amazon.com",
+    "notes": "Dikkat ederseniz gönderen adres @amazon.com.tr uzantılıdır, Tüm bağlantılar amazon.com.tr alan adına yönlenmektedir. Büyük şirketler, resmi e-postalarında 'Sayın [Adınız]' gibi kişisel hitaplar kullanır.",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  },
+  {
+    "id": 30,
+    "file": "resim30_real.png",
+    "path": "screenshots/altay/resim30_real.png",
+    "correct": "real",
+    "explanation": "Gönderici adresi doğrudur.  Bu e-postada, kullanıcıya LinkedIn'de yeni bir mesajı olduğu bildiriliyor ve mesajı görüntülemek için bir bağlantı sağlanıyor. Bağlantı alanına geldiğinizde bağlantı doğru adrese yönlendirmektedir",
+    "url_hint": "",
+    "notes": "Gönderici adresi doğrudur.  Bu e-postada, kullanıcıya LinkedIn'de yeni bir mesajı olduğu bildiriliyor ve mesajı görüntülemek için bir bağlantı sağlanıyor. Bağlantı alanına geldiğinizde bağlantı doğru adrese yönlendirmektedir",
+    "checked": {},
+    "source": "https://phisquiz.siberaltay.org/",
+    "attribution": "Altay Takımı / Siber Vatan — Phishing Tespit Testi"
+  }
+]
