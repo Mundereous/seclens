@@ -12,6 +12,19 @@ Stack: Streamlit + Ollama (yerel open-weight model).
 
 > Yapım aşamasında. Detaylı plan: `HACKTOBERFEST-BAGLAM.md`
 
+## Hızlı başlangıç
+
+```bash
+# 1) Python paketleri
+pip install -r requirements.txt
+
+# 2) Ollama kur (https://ollama.com) sonra model çek
+ollama pull llama3.2:3b
+
+# 3) Uygulamayı aç
+streamlit run app.py
+```
+
 ## Lisans
 
-MIT (eklenecek)
+[MIT](LICENSE)

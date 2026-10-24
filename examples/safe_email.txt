@@ -1,0 +1,10 @@
+Konu: Proje toplantısı hatırlatması
+
+Merhaba,
+
+Hacktoberfest hazırlık toplantımız Cuma 15:00'te online.
+Gündem: SecLens demo prova.
+Katılamayacaksan yanıt yazman yeterli.
+
+İyi çalışmalar,
+Ekip

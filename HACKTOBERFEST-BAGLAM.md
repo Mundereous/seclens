@@ -209,13 +209,15 @@ Task list: BAGLAM Faz 0→5. Kaldığımız fazdan devam.
 
 ---
 
-## 8) Bilinçli boşluklar
+## 8) Repo & boşluklar
 
-- Repo adı GitHub’da netleşecek (`seclens` önerilir)  
+- **GitHub (public):** https://github.com/Mundereous/seclens  
 - Takım yok (bireysel)  
 - Hack Day tarih/saat ve submit deadline → host’tan  
 - Kesin model adı: makine RAM’ine göre seçilecek (Faz 1’de kilitle)  
 - Browserbase / ElevenLabs / Tinker bu MVP’de yok  
+- LICENSE (MIT) henüz eklenmedi → Faz 1  
+
 
 ---
 
