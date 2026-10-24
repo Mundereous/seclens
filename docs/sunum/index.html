@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SecLens — 15 dk Teknik Sunum</title>
+  <link rel="icon" href="seclens-mark.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0E1116;
+      --panel: #161B22;
+      --ink: #E6EDF3;
+      --mute: #8B949E;
+      --soft: #C9D1D9;
+      --line: #30363D;
+      --accent: #3FB950;
+      --teal: #39C5BB;
+      --warn: #D29922;
+      --font: "IBM Plex Sans", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      overflow: hidden;
+    }
+    .deck { height: 100%; }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: 2.25rem 3.25rem 4.25rem;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: auto;
+    }
+    .slide.active { display: flex; }
+    .time {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--teal);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      line-height: 1.15;
+    }
+    h1 span { color: var(--teal); }
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.55rem;
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--soft);
+      margin: 1rem 0 0.45rem;
+    }
+    p, li { color: var(--soft); line-height: 1.5; font-size: 1.02rem; }
+    .lede { font-size: 1.15rem; max-width: 48rem; margin-bottom: 1rem; color: var(--soft); }
+    .say {
+      background: var(--panel);
+      border-left: 3px solid var(--teal);
+      padding: 0.9rem 1.1rem;
+      margin: 0.75rem 0 1rem;
+      border-radius: 0 6px 6px 0;
+      max-width: 52rem;
+    }
+    .say p { margin: 0.4rem 0; color: var(--ink); font-size: 1.05rem; }
+    .say .label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.35rem;
+    }
+    ul, ol { padding-left: 1.25rem; max-width: 52rem; }
+    li { margin: 0.35rem 0; }
+    li strong { color: var(--ink); }
+    pre, .code {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.9rem 1rem;
+      color: var(--soft);
+      max-width: 56rem;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 0.5rem 0 0.75rem;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 56rem;
+      font-size: 0.92rem;
+      margin: 0.5rem 0 0.75rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      background: var(--panel);
+      color: var(--mute);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    td { color: var(--soft); }
+    td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      margin: 1rem 0;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--mute);
+    }
+    .meta a { color: var(--teal); }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .brand img {
+      width: 56px; height: 56px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .steps { counter-reset: s; list-style: none; padding-left: 0; }
+    .steps li {
+      counter-increment: s;
+      padding: 0.45rem 0 0.45rem 2.2rem;
+      position: relative;
+      border-bottom: 1px solid var(--line);
+      max-width: 48rem;
+    }
+    .steps li::before {
+      content: counter(s);
+      position: absolute;
+      left: 0;
+      top: 0.4rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 4px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--teal);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .check { list-style: none; padding-left: 0; }
+    .check li {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--line);
+      max-width: 40rem;
+    }
+    .check li::before { content: "[x] "; color: var(--accent); font-family: var(--mono); }
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      max-width: 56rem;
+    }
+    .box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+    }
+    .box h3 { margin-top: 0; color: var(--teal); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; }
+    .footer-bar {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 1.25rem;
+      background: #010409;
+      border-top: 1px solid var(--line);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--mute);
+      z-index: 10;
+    }
+    .progress {
+      flex: 1; max-width: 220px; height: 3px;
+      background: var(--line); margin: 0 1rem;
+    }
+    .progress i {
+      display: block; height: 100%; width: 0; background: var(--teal);
+    }
+    .src {
+      margin-top: auto;
+      padding-top: 1rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--mute);
+    }
+    @media (max-width: 800px) {
+      .slide { padding: 1.25rem 1.1rem 4rem; }
+      .two { grid-template-columns: 1fr; }
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.35rem; }
+      pre, .code { font-size: 0.65rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 Kapak -->
+  <section class="slide active">
+    <div class="brand">
+      <img src="seclens-logo.jpg" alt="SecLens" />
+      <div>
+        <div class="time">Hacktoberfest 2026 · Best Open-Source AI Project</div>
+        <h1>Sec<span>Lens</span> — 15 dk teknik sunum</h1>
+      </div>
+    </div>
+    <p class="lede">Kaynak: <code style="font-family:var(--mono);color:var(--teal)">DEMO-SUNUM-NOTLARI.md</code> · canlı demo dahil</p>
+    <div class="meta">
+      <span>Repo: <a href="https://github.com/Mundereous/seclens" target="_blank">Mundereous/seclens</a></span>
+      <span>Demo: 127.0.0.1:8501</span>
+      <span>stack: Streamlit + Ollama</span>
+    </div>
+    <p class="src">← → ile ilerle · F tam ekran</p>
+  </section>
+
+  <!-- 2 Zaman çizelgesi -->
+  <section class="slide">
+    <div class="time">Ezberle</div>
+    <h2>Zaman çizelgesi (~15 dk)</h2>
+    <table>
+      <thead><tr><th>Dk</th><th>Bölüm</th><th>Ne anlat / göster</th></tr></thead>
+      <tbody>
+        <tr><td>0:00–1:00</td><td>Pitch + problem</td><td>Neden SecLens?</td></tr>
+        <tr><td>1:00–3:00</td><td>Mimari</td><td>Kurallar + LLM hibriti, fine-tune yok</td></tr>
+        <tr><td>3:00–5:30</td><td>Mod 1 canlı</td><td>Phishing SMS → skor</td></tr>
+        <tr><td>5:30–8:00</td><td>Mod 2 canlı</td><td>Mini-SAST (SQLi / IDOR)</td></tr>
+        <tr><td>8:00–10:30</td><td>Mod 3 canlı</td><td>Screenshot + moondream</td></tr>
+        <tr><td>10:30–12:00</td><td>Mod 4</td><td>E-posta sızıntı (XposedOrNot)</td></tr>
+        <tr><td>12:00–14:00</td><td>Hatalar & çözümler</td><td>“Ne zorladı?”</td></tr>
+        <tr><td>14:00–15:00</td><td>Challenge + kapanış</td><td>MIT, open-weight, sınırlar</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3 Pitch -->
+  <section class="slide">
+    <div class="time">0:00–1:00 · Elevator pitch</div>
+    <h2>Söyle</h2>
+    <div class="say">
+      <div class="label">Pitch</div>
+      <p><strong>SecLens</strong>, Türkçe oltalama (SMS/e-posta), güvensiz kod snippet’leri, sahte login screenshot’ları ve e-posta sızıntı kontrolünü <strong>tek yerde</strong> toplayan open-weight AI güvenlik asistanıdır.</p>
+      <p>Eğitim ve farkındalık aracıdır; antivirüs veya adli bilişim yerine geçmez.</p>
+      <p>Stack: <strong>Streamlit + Ollama</strong> · <strong>Llama 3.2 1B</strong> (metin) · <strong>moondream</strong> (görüntü) · kendi <strong>kural motorları</strong>.</p>
+    </div>
+    <h3>Neden bu proje? (1 cümle)</h3>
+    <p>Hackathon’da (~6 saat) jüriye <strong>çalışan demo + açık lisans + open-weight AI’nın gerçekten iş yaptığı</strong> bir şey; TR scam’e özel, kopya konu değil.</p>
+  </section>
+
+  <!-- 4 Mimari diyagram -->
+  <section class="slide">
+    <div class="time">1:00–3:00 · Mimari</div>
+    <h2>Büyük resim</h2>
+    <pre>Kullanıcı (Streamlit / app.py)
+        │
+        ├─ Mod 1 Metin ──► phishing.py + scam_patterns.py
+        │                     ├─ KURAL skoru (0–100)  ← güvence
+        │                     └─ Ollama llama3.2:1b   ← Türkçe gerekçe
+        ├─ Mod 2 Kod ────► code_scan.py + code_rules.py (~185)
+        │                     └─ Ollama → açıkla / düzeltme öner
+        ├─ Mod 3 Görüntü ► screenshot_scan.py
+        │                     ├─ Checklist + URL (skor ağırlığı)
+        │                     └─ moondream (opsiyonel vision)
+        └─ Mod 4 Sızıntı ► breach_check.py → XposedOrNot API</pre>
+  </section>
+
+  <!-- 5 Hibrit karar -->
+  <section class="slide">
+    <div class="time">1:00–3:00 · Tasarım kararı #1</div>
+    <h2>“Kurallar önce, LLM ikinci”</h2>
+    <table>
+      <thead><tr><th>Seçenek</th><th>Neden</th></tr></thead>
+      <tbody>
+        <tr><td>Sadece LLM</td><td>1B TR scam’de yetersiz; güvenli maili “şüpheli” sayabilir; skor rastgele</td></tr>
+        <tr><td>Sadece kurallar</td><td>Açıklama zayıf; jüri “AI nerede?” der</td></tr>
+        <tr><td>Hibrit (bizim)</td><td>Skor kurallardan (tekrarlanabilir); LLM gerekçe + öneri</td></tr>
+      </tbody>
+    </table>
+    <div class="say">
+      <div class="label">Dürüst cümle</div>
+      <p>Fine-tune yok. “Öğrenme” = kamu uyarılarından / OWASP-CWE’den <strong>kural seti çıkarmak</strong>.</p>
+    </div>
+  </section>
+
+  <!-- 6 Neden 1B / Streamlit / Ollama -->
+  <section class="slide">
+    <div class="time">1:00–3:00 · Karar #2–4</div>
+    <h2>Neden bu stack?</h2>
+    <div class="two">
+      <div class="box">
+        <h3>Llama 3.2 1B</h3>
+        <ul>
+          <li>Small LM ≤ 10B (challenge)</li>
+          <li>Lokal, ~1.3 GB, API key yok</li>
+          <li>Llama 3.2 Community License</li>
+          <li>Eksikleri kurallarla kapatıyoruz</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Streamlit + Ollama</h3>
+        <ul>
+          <li>Hackathon temposu, tek UI</li>
+          <li>Yerel inference, offline demo</li>
+          <li>Aynı API: metin + vision</li>
+          <li>Production SAST iddiası yok</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 Dosya haritası -->
+  <section class="slide">
+    <div class="time">1:00–3:00 · Dosya haritası</div>
+    <h2>Parmakla göster</h2>
+    <table>
+      <thead><tr><th>Dosya</th><th>Rol</th></tr></thead>
+      <tbody>
+        <tr><td>app.py</td><td>4 sekme UI, Ollama durum, örnekler</td></tr>
+        <tr><td>ui/theme.py</td><td>Marka / CSS</td></tr>
+        <tr><td>core/ollama_client.py</td><td>:11434 chat / vision</td></tr>
+        <tr><td>core/scam_patterns.py</td><td>TR smishing ~400+ kalıp</td></tr>
+        <tr><td>core/phishing.py</td><td>Mod 1 skor + LLM prompt</td></tr>
+        <tr><td>core/code_rules.py</td><td>~185 OWASP/CWE kuralı</td></tr>
+        <tr><td>core/code_scan.py</td><td>Mini-SAST + LLM notu</td></tr>
+        <tr><td>core/screenshot_scan.py</td><td>Checklist + moondream</td></tr>
+        <tr><td>core/breach_check.py</td><td>XposedOrNot</td></tr>
+        <tr><td>examples/ · LICENSE · README</td><td>Demo + MIT + model bilgisi</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 8 Mod 1 -->
+  <section class="slide">
+    <div class="time">3:00–5:30 · Mod 1 · CANLI</div>
+    <h2>Türkçe phishing / smishing</h2>
+    <h3>Ne yapıyor?</h3>
+    <ol>
+      <li>Metin → <code style="font-family:var(--mono)">scam_patterns</code> (banka, e-Devlet, IBAN, OTP+WhatsApp, uzlaştırma, valilik+IG…)</li>
+      <li>Skor 0–100 · düşük / orta / yüksek</li>
+      <li>Her analizde <strong>llama3.2:1b</strong> → JSON gerekçe + öneri (TR)</li>
+    </ol>
+    <h3>Canlı adımlar</h3>
+    <ol class="steps">
+      <li>Sekme <strong>Metin</strong></li>
+      <li>Örnek: Sahte e-Devlet veya Uzlaştırma → Örneği yükle → Analiz et</li>
+      <li>Beklenen: <strong>Yüksek risk</strong>, 5010 / tıklama uyarısı</li>
+      <li>Kontrast: Güvenli e-posta → <strong>Düşük risk</strong></li>
+    </ol>
+  </section>
+
+  <!-- 9 Mod 1 teknik -->
+  <section class="slide">
+    <div class="time">3:00–5:30 · Mod 1 · Neyi neden?</div>
+    <h2>Mod 1 teknik noktalar</h2>
+    <ul>
+      <li><strong>IBAN regex (bitişik TR…):</strong> “valilik onaylı IBAN” vakaları</li>
+      <li><strong>Telefon vs IBAN:</strong> IBAN rakamları telefon sanılmasın → maskeleme</li>
+      <li><strong>Güvenli kelime seti:</strong> toplantı / arkadaş mesajında FP ↓</li>
+    </ul>
+    <div class="say">
+      <div class="label">Söyle</div>
+      <p>“Skorun sahibi kurallar; LLM hikâyeyi anlatıyor. 1B model JSON’u bozsa bile risk bandı çökmez.”</p>
+    </div>
+  </section>
+
+  <!-- 10 Mod 2 -->
+  <section class="slide">
+    <div class="time">5:30–8:00 · Mod 2 · CANLI</div>
+    <h2>Mini-SAST (~185 kural)</h2>
+    <h3>Ne yapıyor?</h3>
+    <ul>
+      <li>Pattern: secrets, SQLi, RCE, XSS, IDOR, XXE, pickle/yaml, Trojan Source, Twisted/httpoxy, zayıf hash…</li>
+      <li>Çıktı: satır, rule_id, OWASP, CWE, şiddet, düzeltme</li>
+      <li>LLM: Türkçe özet (eğitim dili)</li>
+    </ul>
+    <h3>Canlı adımlar</h3>
+    <ol class="steps">
+      <li>Sekme <strong>Kod</strong></li>
+      <li><strong>02 SQL Injection</strong> → Tara → CWE-89 / A03</li>
+      <li>İsteğe bağlı: 13 IDOR veya 14 PHP SQLi</li>
+      <li><strong>10 Güvenli referans</strong> → kritik bulgu yok</li>
+    </ol>
+  </section>
+
+  <!-- 11 Mod 2 sınır -->
+  <section class="slide">
+    <div class="time">5:30–8:00 · Mod 2 · Sınır</div>
+    <h2>Dürüst ol</h2>
+    <div class="say">
+      <div class="label">Söyle</div>
+      <p>“Bu Semgrep/CodeQL değil; eğitim amaçlı pattern SAST. Taint analizi yok. Hackathon’da gösterilebilir OWASP haritası için bilinçli trade-off.”</p>
+    </div>
+    <h3>Neden Bandit örnekleri?</h3>
+    <p><code style="font-family:var(--mono);color:var(--teal)">examples/code/external/</code> — bilinen zafiyetlerle kural setini doğrulamak (Trojan Source, XXE, pickle…).</p>
+  </section>
+
+  <!-- 12 Mod 3 -->
+  <section class="slide">
+    <div class="time">8:00–10:30 · Mod 3 · CANLI</div>
+    <h2>Screenshot + vision</h2>
+    <h3>Ne yapıyor?</h3>
+    <ol>
+      <li>PNG/JPG veya örnek / quiz seti (<code style="font-family:var(--mono)">examples/screenshots/altay/</code>)</li>
+      <li>Adres çubuğu + checklist (acil dil, lookalike, CVV/OTP…)</li>
+      <li>Opsiyonel <strong>moondream</strong></li>
+      <li>Skor = checklist ağırlıklı; vision destekleyici</li>
+    </ol>
+    <h3>Canlı adımlar</h3>
+    <ol class="steps">
+      <li>Sekme <strong>Görüntü</strong></li>
+      <li>Sahte banka login örneği yükle</li>
+      <li>Checklist 2–3 kutu + şüpheli URL</li>
+      <li><strong>Görüntüyü analiz et</strong></li>
+    </ol>
+  </section>
+
+  <!-- 13 Mod 3 neden -->
+  <section class="slide">
+    <div class="time">8:00–10:30 · Mod 3 · Neyi neden?</div>
+    <h2>Mod 3 kararlar</h2>
+    <ul>
+      <li>Saf OCR/vision’a güvenmedik: <strong>insan checklist</strong> skorun omurgası</li>
+      <li>Vision: logo/form ipucu — multimodal open-weight gösterimi</li>
+      <li>UI’da “Örnek” etiketi: eğitim seti; üçüncü parti marka öne çıkmasın</li>
+    </ul>
+    <div class="say">
+      <div class="label">Dürüst</div>
+      <p>Eğitim senaryosu; production phishing detector değil.</p>
+    </div>
+  </section>
+
+  <!-- 14 Mod 4 -->
+  <section class="slide">
+    <div class="time">10:30–12:00 · Mod 4</div>
+    <h2>E-posta sızıntı (XposedOrNot)</h2>
+    <ul>
+      <li><code style="font-family:var(--mono)">breach_check.py</code> → XposedOrNot ücretsiz API</li>
+      <li>E-posta bilinen sızıntı listelerinde mi?</li>
+      <li>LLM şart değil; UI’da risk + öneriler (parola, 2FA)</li>
+    </ul>
+    <h3>Canlı</h3>
+    <ol class="steps">
+      <li>Sekme <strong>E-posta sızıntı</strong></li>
+      <li>Test maili (sızmış / temiz)</li>
+      <li>Rate limit’e dikkat</li>
+    </ol>
+    <p style="margin-top:1rem"><strong>Neden:</strong> Metin/kod/görüntü önleyici; sızıntı “sonradan farkındalık” — 4 ayaklı hikâye.</p>
+  </section>
+
+  <!-- 15 Hatalar ortam -->
+  <section class="slide">
+    <div class="time">12:00–14:00 · Hatalar (4–5 madde seç)</div>
+    <h2>Ortam / toolchain</h2>
+    <table>
+      <thead><tr><th>#</th><th>Sorun</th><th>Çözüm</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>gh yok / login</td><td>brew gh + auth → Mundereous/seclens</td></tr>
+        <tr><td>2</td><td>Streamlit e-posta prompt</td><td>credentials.toml + headless</td></tr>
+        <tr><td>3</td><td>Ollama PATH / :11434</td><td>Ollama.app / serve + symlink</td></tr>
+        <tr><td>4</td><td>pull EOF</td><td>Tekrarlı ollama pull (resume)</td></tr>
+        <tr><td>5</td><td>Cloud hesap</td><td>Local only</td></tr>
+        <tr><td>6–7</td><td>git push / şirket author</td><td>gh auth setup-git; history → Mundereous</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 16 Hatalar model -->
+  <section class="slide">
+    <div class="time">12:00–14:00 · Model & skor</div>
+    <h2>Skor mantığı hataları</h2>
+    <table>
+      <thead><tr><th>#</th><th>Sorun</th><th>Çözüm</th></tr></thead>
+      <tbody>
+        <tr><td>8</td><td>Güvenli mail → yüksek risk</td><td>Kural motoru + güvenli kelimeler</td></tr>
+        <tr><td>9</td><td>Uzlaştırma düşük skor</td><td>TR scam kalıpları + telefon + “arayın”</td></tr>
+        <tr><td>10</td><td>Valilik+IBAN kaçtı</td><td>Bitişik IBAN regex + maskeleme</td></tr>
+        <tr><td>11</td><td>JSON bozuldu</td><td>Kısa prompt + onarım; skor kurallarda</td></tr>
+        <tr><td>12</td><td>“Takıldı” hissi</td><td>15–60 sn uyarısı; LLM her analizde</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 17 Hatalar kod UI -->
+  <section class="slide">
+    <div class="time">12:00–14:00 · Mod 2/3 + UI</div>
+    <h2>Diğer kritik hatalar</h2>
+    <div class="two">
+      <div class="box">
+        <h3>Mod 2 / 3</h3>
+        <ul>
+          <li>13: IDOR/XXE/Trojan → kural++</li>
+          <li>14: stale Streamlit → restart / reload</li>
+          <li>15: selectbox kırılgan → file upload</li>
+          <li>16: SSL/urllib → requests/curl</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>UI</h3>
+        <ul>
+          <li>17: theme cache → importlib.reload</li>
+          <li>18: uploadpload → icon CSS</li>
+          <li>19–20: kontrast / AI şablon cilâsı</li>
+        </ul>
+      </div>
+    </div>
+    <div class="say">
+      <div class="label">Meta ders</div>
+      <p>Küçük open-weight + iyi kural seti &gt; büyük API model (hackathon). Agresif CSS Streamlit widget’ı kırar.</p>
+    </div>
+  </section>
+
+  <!-- 18 Challenge -->
+  <section class="slide">
+    <div class="time">14:00–15:00 · Challenge uyumu</div>
+    <h2>Checklist</h2>
+    <ul class="check">
+      <li>Open-weight AI merkezi (llama3.2:1b + moondream) — demoda</li>
+      <li>Public GitHub + MIT</li>
+      <li>README: ne / nasıl / model + lisans</li>
+      <li>Small LM ≤ 10B</li>
+      <li>Fine-tune yok (dürüst)</li>
+      <li>4 mod çalışan demo</li>
+    </ul>
+    <h3>Sınırlar</h3>
+    <p>Antivirus değil · production SAST değil · vision OCR mucizesi değil · şüpheli SMS: <strong>5010</strong></p>
+  </section>
+
+  <!-- 19 Kapanış -->
+  <section class="slide">
+    <div class="time">14:00–15:00 · Kapanış</div>
+    <h2>Kapanış cümlesi</h2>
+    <div class="say">
+      <div class="label">Söyle</div>
+      <p>“SecLens, Türkçe güvenlik farkındalığını open-weight AI ile birleştiriyor: skorlar kurallarla güvenilir, açıklamalar yerel modelle anlaşılır, her şey MIT ve public repo’da.”</p>
+    </div>
+    <div class="meta">
+      <span><a href="https://github.com/Mundereous/seclens" target="_blank">github.com/Mundereous/seclens</a></span>
+      <span>streamlit run app.py → :8501</span>
+    </div>
+  </section>
+
+  <!-- 20 Acil kit -->
+  <section class="slide">
+    <div class="time">Ek · Canlı demo acil kit</div>
+    <h2>Takılırsa</h2>
+    <pre># Uygulama
+cd ~/Desktop/HACKTOBERFEST
+streamlit run app.py
+# → http://127.0.0.1:8501
+
+# Ollama
+open -a Ollama
+ollama pull llama3.2:1b
+ollama pull moondream</pre>
+    <table>
+      <thead><tr><th>Belirti</th><th>Ne yap</th></tr></thead>
+      <tbody>
+        <tr><td>Ollama kapalı</td><td>Ollama.app aç</td></tr>
+        <tr><td>UI eski / hata</td><td>Restart + Cmd+Shift+R</td></tr>
+        <tr><td>Model yok</td><td>ollama pull …</td></tr>
+        <tr><td>Analiz yavaş</td><td>Normal (1B); spinner bekle</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 21 Q&A -->
+  <section class="slide">
+    <div class="time">Ek · Jüri Q&A</div>
+    <h2>Hazır cevaplar</h2>
+    <table>
+      <thead><tr><th>Soru</th><th>Cevap</th></tr></thead>
+      <tbody>
+        <tr><td>AI nerede?</td><td>Metin/kod: 1B gerekçe; görüntü: moondream; skor çoğunlukla kurallarda</td></tr>
+        <tr><td>Fine-tune?</td><td>Hayır — pattern + prompt</td></tr>
+        <tr><td>Neden 1B?</td><td>Hackathon + local + small LM; kurallarla stabil</td></tr>
+        <tr><td>Farkı?</td><td>TR smishing; 4 mod; yerel OW (Mod 4 API hariç)</td></tr>
+        <tr><td>Yanlış alarm?</td><td>Erken vardı; kural seti büyüdü; %100 değil</td></tr>
+        <tr><td>Lisans?</td><td>Kod MIT; Llama 3.2 Community; ağırlıklar repo’da yok</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 22 Demo sıra -->
+  <section class="slide">
+    <div class="time">Tek bakış</div>
+    <h2>Demo sıra listesi</h2>
+    <ol class="steps">
+      <li>Pitch (30 sn)</li>
+      <li>Mimari diyagramı (90 sn)</li>
+      <li>Metin: yüksek + düşük</li>
+      <li>Kod: SQLi + temiz</li>
+      <li>Görüntü: örnek + checklist</li>
+      <li>Sızıntı: bir e-posta</li>
+      <li>3–4 hata hikâyesi (pull, kural vs LLM, uploadpload, author)</li>
+      <li>Challenge checklist + kapanış</li>
+    </ol>
+    <p style="margin-top:1.25rem"><strong>Toplam ~15 dk.</strong> Konuşma metni: DEMO-SUNUM-NOTLARI.md</p>
+  </section>
+
+</div>
+
+<div class="footer-bar">
+  <span>SecLens · DEMO-SUNUM-NOTLARI.md</span>
+  <div class="progress"><i id="bar"></i></div>
+  <span id="counter">1 / 1</span>
+</div>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  let i = 0;
+  const counter = document.getElementById("counter");
+  const bar = document.getElementById("bar");
+  function show(n) {
+    i = (n + slides.length) % slides.length;
+    slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+    counter.textContent = (i + 1) + " / " + slides.length;
+    bar.style.width = ((i + 1) / slides.length) * 100 + "%";
+    history.replaceState(null, "", "#" + (i + 1));
+    slides[i].scrollTop = 0;
+  }
+  document.addEventListener("keydown", (e) => {
+    if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === "Home") show(0);
+    else if (e.key === "End") show(slides.length - 1);
+    else if (e.key === "f" || e.key === "F") {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+  });
+  document.getElementById("deck").addEventListener("click", (e) => {
+    if (e.target.closest("a")) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.55) show(i + 1);
+    else if (x < 0.45) show(i - 1);
+  });
+  const hash = parseInt(location.hash.replace("#", ""), 10);
+  show(Number.isFinite(hash) && hash >= 1 ? hash - 1 : 0);
+</script>
+</body>
+</html>

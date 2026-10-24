@@ -9,6 +9,7 @@ SecLens — ana arayüz (Streamlit).
 
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 
 import streamlit as st
@@ -17,12 +18,17 @@ from core.code_rules import RULES
 from core.code_scan import analyze_code
 from core.ollama_client import DEFAULT_MODEL, OllamaError, is_ollama_up, list_models
 from core.phishing import analyze_text
+from core.breach_check import BreachCheckError, check_email
 from core.screenshot_scan import (
     CHECK_ITEMS,
     analyze_screenshot,
     image_to_png_bytes,
     pick_vision_model,
 )
+from ui import theme as ui_theme
+
+# Streamlit kısmi reload'da eski theme cache kalabiliyor
+ui_theme = importlib.reload(ui_theme)
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 
@@ -46,9 +52,9 @@ EXAMPLE_LABELS = {
 
 
 RISK_LABEL = {
-    "dusuk": ("Düşük risk", "🟢"),
-    "orta": ("Orta risk", "🟡"),
-    "yuksek": ("Yüksek risk", "🔴"),
+    "dusuk": "Düşük risk",
+    "orta": "Orta risk",
+    "yuksek": "Yüksek risk",
 }
 
 
@@ -107,59 +113,80 @@ CODE_EXAMPLE_LABELS = {
 }
 
 
+_PAGE_ICON = Path(__file__).parent / "assets" / "seclens-mark.png"
 st.set_page_config(
     page_title="SecLens",
-    page_icon="🔎",
+    page_icon=str(_PAGE_ICON) if _PAGE_ICON.exists() else "◈",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-st.title("SecLens")
-st.caption(
-    "Open-weight AI güvenlik asistanı — metin phishing, kod tarama, login screenshot. "
-    "Eğitim amaçlıdır; gerçek antivirüs / uzman görüşü yerine geçmez."
-)
+ui_theme.inject()
+ui_theme.hero(modes_ready=4)
 
 # --- Sol kenar: Ollama durumu ---
 with st.sidebar:
-    st.header("Ayarlar")
+    ui_theme.sidebar_brand()
+    st.markdown("##### Ayarlar")
     ollama_ok = is_ollama_up()
     if ollama_ok:
-        st.success("Ollama çalışıyor")
+        st.markdown(
+            '<div class="sl-status sl-status--ok">Ollama bağlı</div>',
+            unsafe_allow_html=True,
+        )
         try:
             models = list_models()
         except OllamaError:
             models = []
         if models:
-            # Varsayılan modeli mümkünse seç
             default_idx = 0
             for i, name in enumerate(models):
                 if DEFAULT_MODEL in name:
                     default_idx = i
                     break
-            model = st.selectbox("Model", models, index=default_idx)
+            # Vision varsa listede göster ama varsayılan metin modeli kalsın
+            model = st.selectbox("Metin modeli", models, index=default_idx)
         else:
-            st.warning(f"Kurulu model yok. Terminalde: `ollama pull {DEFAULT_MODEL}`")
+            st.warning(f"Model yok — `ollama pull {DEFAULT_MODEL}`")
             model = DEFAULT_MODEL
     else:
-        st.error("Ollama kapalı / bulunamadı")
         st.markdown(
-            "Applications → **Ollama** uygulamasını aç, sonra: "
-            f"`ollama pull {DEFAULT_MODEL}`"
+            '<div class="sl-status sl-status--bad">Ollama kapalı</div>',
+            unsafe_allow_html=True,
         )
-        model = st.text_input("Model adı (sonra)", value=DEFAULT_MODEL)
+        st.markdown(
+            "Ollama uygulamasını aç, sonra:\n\n"
+            f"`ollama pull {DEFAULT_MODEL}`\n\n"
+            "`ollama pull moondream`"
+        )
+        model = st.text_input("Model adı", value=DEFAULT_MODEL)
+
+    vision = pick_vision_model() if ollama_ok else None
+    if vision:
+        st.caption(f"Vision: `{vision}`")
+    else:
+        st.caption("Vision: kurulu değil (Mod 3 opsiyonel)")
+
+    st.divider()
+    st.caption("MIT · yerel modeller")
 
     st.session_state["model"] = model
 
-# --- Üç sekme ---
-tab_text, tab_code, tab_image = st.tabs(
-    ["1 · Metin (phishing)", "2 · Kod (güvenlik)", "3 · Görüntü (screenshot)"]
+# --- Dört sekme ---
+tab_text, tab_code, tab_image, tab_breach = st.tabs(
+    [
+        "Metin",
+        "Kod",
+        "Görüntü",
+        "E-posta sızıntı",
+    ]
 )
 
 with tab_text:
-    st.subheader("Türkçe e-posta / SMS analizi")
+    st.subheader("Metin · Türkçe phishing / smishing")
     st.write(
-        "Metni yapıştır veya örnek seç → **Analiz et**. "
-        "Kurallar (BTK/Emniyet/PTT kalıpları) + yerel open-weight model."
+        "SMS veya e-posta yapıştır → **Analiz et**. "
+        "Skor kurallardan; gerekçe yerel modelden."
     )
 
     choice = st.selectbox("Hazır örnekler (TR dolandırıcılık kalıpları)", list(EXAMPLE_LABELS.keys()))
@@ -191,12 +218,14 @@ with tab_text:
                     result = None
 
             if result is not None:
-                title, icon = RISK_LABEL.get(result.risk, ("Bilinmiyor", "⚪"))
-                st.markdown(f"### {icon} {title}")
-                st.progress(
-                    result.skor / 100.0,
-                    text=f"Skor: {result.skor}/100 (kural: {result.kural_skoru})",
+                title = RISK_LABEL.get(result.risk, "Bilinmiyor")
+                ui_theme.risk_banner(
+                    result.risk,
+                    title,
+                    result.skor,
+                    extra=f"kural {result.kural_skoru}",
                 )
+                st.progress(result.skor / 100.0)
 
                 c1, c2 = st.columns(2)
                 with c1:
@@ -210,26 +239,23 @@ with tab_text:
 
                 status = getattr(result, "llm_status", "ok")
                 if status == "ok":
-                    st.success("LLM cevap verdi.")
-                    with st.expander("Ham model cevabı", expanded=True):
+                    with st.expander("Ham model cevabı"):
                         st.code(result.ham)
                 elif status == "failed":
                     st.warning("LLM çağrısı başarısız; skor kurallardan.")
                     st.code(result.ham)
                 elif status == "bad_json":
-                    st.warning("LLM cevap verdi ama JSON bozuldu; kurallar + ham metin:")
+                    st.warning("LLM JSON bozuldu; kurallar + ham metin:")
                     st.code(result.ham)
                 else:
                     with st.expander("Ham / durum"):
                         st.code(result.ham)
 
 with tab_code:
-    st.subheader("Kod snippet güvenlik taraması (mini-SAST)")
+    st.subheader("Kod · mini-SAST")
     st.write(
-        f"**{len(RULES)} kural** · OWASP Top 10 + CWE (Bandit/Semgrep kalıpları): "
-        "secrets, SQLi, RCE, XSS, deserialization, path traversal, SSRF, zayıf kripto, "
-        "JWT, CGI/httpoxy, tar slip, Telnet/FTP… "
-        "(Eğitim amaçlı pattern eşleme — Semgrep/CodeQL değildir.)"
+        f"**{len(RULES)} kural** · OWASP / CWE odaklı pattern tarama. "
+        "Eğitim amaçlıdır; Semgrep/CodeQL yerine geçmez."
     )
 
     code_choice = st.selectbox(
@@ -257,12 +283,9 @@ with tab_code:
             with st.spinner("Kod taranıyor (OWASP/CWE kuralları)…"):
                 report = analyze_code(code, model=model)
             scan = report.scan
-            title, icon = RISK_LABEL.get(scan.risk, ("Bilinmiyor", "⚪"))
-            st.markdown(f"### {icon} {title}")
-            st.progress(
-                scan.skor / 100.0,
-                text=f"Risk skoru: {scan.skor}/100 — {scan.ozet}",
-            )
+            title = RISK_LABEL.get(scan.risk, "Bilinmiyor")
+            ui_theme.risk_banner(scan.risk, title, scan.skor, extra=scan.ozet[:80])
+            st.progress(scan.skor / 100.0)
             st.caption(report.llm_note)
 
             if scan.by_owasp:
@@ -274,11 +297,11 @@ with tab_code:
                 st.success("Bu kural setine göre kritik bulgu yok.")
             else:
                 for f in scan.findings:
-                    badge = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
-                        f.severity, "⚪"
+                    badge = {"high": "HIGH", "medium": "MED", "low": "LOW"}.get(
+                        f.severity, "?"
                     )
                     with st.expander(
-                        f"{badge} L{f.line} · {f.rule_id} · {f.title}",
+                        f"[{badge}] L{f.line} · {f.rule_id} · {f.title}",
                         expanded=f.severity == "high",
                     ):
                         st.markdown(
@@ -420,16 +443,13 @@ with tab_image:
                 model=st.session_state.get("model", DEFAULT_MODEL),
                 use_vision=use_vision,
             )
-        label, emoji = RISK_LABEL.get(result.risk, (result.risk, ""))
-        st.markdown(f"### {emoji} {label}")
-        st.write(
-            f"**Skor:** {result.skor}/100 (kural: {result.kural_skoru})"
-            + (
-                f" · vision: `{result.vision_model}`"
-                if result.vision_used
-                else " · vision: kapalı"
-            )
+        label = RISK_LABEL.get(result.risk, result.risk)
+        extra = (
+            f"kural {result.kural_skoru} · vision {result.vision_model}"
+            if result.vision_used
+            else f"kural {result.kural_skoru} · vision kapalı"
         )
+        ui_theme.risk_banner(result.risk, label, result.skor, extra=extra)
         st.progress(min(100, max(0, result.skor)) / 100.0)
         st.markdown("**Gerekçeler**")
         for g in result.gerekceler:
@@ -457,3 +477,85 @@ with tab_image:
             if result.ham:
                 with st.expander("Ham çıktı / hata"):
                     st.code(result.ham[:2000])
+
+with tab_breach:
+    st.subheader("E-posta sızıntı kontrolü (XposedOrNot)")
+    st.write(
+        "E-posta adresinin bilinen veri ihlallerinde görünüp görünmediğini "
+        "[XposedOrNot](https://xposedornot.com) ücretsiz API’si ile kontrol eder. "
+        "**API anahtarı gerekmez.** Adres yalnızca XposedOrNot’a gider; SecLens saklamaz."
+    )
+    st.caption(
+        "Rate limit (ücretsiz): ~2 istek/sn, 25/saat, 100/gün · "
+        "[API docs](https://xposedornot.com/api_doc)"
+    )
+
+    email_in = st.text_input(
+        "E-posta adresi",
+        key="breach_email",
+        placeholder="ornek@domain.com",
+    )
+    run_breach = st.button("Sızıntı kontrol et", type="primary", key="btn_breach")
+
+    if run_breach:
+        with st.spinner("XposedOrNot sorgulanıyor…"):
+            try:
+                br = check_email(email_in)
+            except BreachCheckError as e:
+                st.error(str(e))
+                br = None
+
+        if br is not None:
+            if br.error and br.ham_status == "invalid":
+                st.warning(br.error)
+            elif not br.found:
+                ui_theme.risk_banner(
+                    "dusuk",
+                    "Sızıntıda görünmüyor",
+                    5,
+                    extra="XposedOrNot indeksi",
+                )
+                st.markdown("**Öneriler**")
+                for o in br.oneriler:
+                    st.markdown(f"- {o}")
+            else:
+                score = br.risk_score if br.risk_score is not None else min(
+                    100, 40 + len(br.breaches)
+                )
+                risk_key = (
+                    "yuksek"
+                    if score >= 65
+                    else "orta"
+                    if score >= 30
+                    else "dusuk"
+                )
+                ui_theme.risk_banner(
+                    risk_key,
+                    f"Sızıntıda bulundu · {len(br.breaches)} ihlal",
+                    int(score),
+                    extra=f"XposedOrNot {br.risk_label or 'risk'}",
+                )
+                st.progress(min(100, max(0, int(score))) / 100.0)
+                if br.password_hint:
+                    st.markdown("**Parola sızıntısı özeti (indeks)**")
+                    st.json(br.password_hint)
+                if br.xposed_summary:
+                    st.markdown("**Sızan veri kategorileri (özet)**")
+                    for x in br.xposed_summary:
+                        st.markdown(f"- {x}")
+                st.markdown("**İhlaller**")
+                # Çok uzun listeleri kısalt
+                show = br.breaches[:80]
+                cols = st.columns(3)
+                for i, name in enumerate(show):
+                    cols[i % 3].markdown(f"- `{name}`")
+                if len(br.breaches) > 80:
+                    st.caption(f"… ve {len(br.breaches) - 80} ihlal daha")
+                st.markdown("**Öneriler**")
+                for o in br.oneriler:
+                    st.markdown(f"- {o}")
+                st.info(
+                    "Detaylı rapor / alert: [xposedornot.com](https://xposedornot.com)"
+                )
+
+ui_theme.footnote()
