@@ -1,0 +1,13 @@
+# ZAFİYET: Path Traversal (OWASP A01 · CWE-22)
+# NEDEN TEHLİKELİ?
+# - name = "../../etc/passwd" gelirse /var/data/ dışına çıkılır.
+# - "../" ile dizin tırmanışı; send_file / open birleşince dosya sızdırılır.
+# DOĞRUSU: Path(name).name ile sadece dosya adı al; resolve() ile kök dizini doğrula.
+
+from flask import send_file
+
+def read_user_file(name):
+    return open("/var/data/" + name).read()
+
+def download(name):
+    return send_file("../uploads/" + name)

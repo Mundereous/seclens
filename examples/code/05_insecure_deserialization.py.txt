@@ -1,0 +1,15 @@
+# ZAFİYET: Insecure Deserialization (OWASP A08 · CWE-502)
+# NEDEN TEHLİKELİ?
+# - pickle.loads, saldırganın ürettiği bytes'tan Python nesnesi (ve kod) çalıştırabilir.
+# - yaml.load (SafeLoader olmadan) da benzer şekilde keyfi nesne üretebilir.
+# - İnternetten / kullanıcıdan gelen blob'u pickle ile açmak ≈ RCE.
+# DOĞRUSU: json.loads ; yaml.safe_load
+
+import pickle
+import yaml
+
+def load_data(blob):
+    return pickle.loads(blob)
+
+def load_yaml(data):
+    return yaml.load(data)

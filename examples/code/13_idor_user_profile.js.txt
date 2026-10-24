@@ -1,0 +1,10 @@
+// SecLens eğitim örneği — IDOR / Broken Access Control (CWE-639, OWASP A01)
+// NEDEN zayıf: query'deki id ile kullanıcı kaydı çekilip yetki kontrolü olmadan dönülüyor.
+// Başkasının id'sini yazınca profili okunur.
+// Doğru: session user == resource owner (veya admin); aksi 403.
+
+app.get('/api/userProfile', (req, res) => {
+  const userId = req.query.id;
+  const userData = db.getUserById(userId);
+  res.json(userData);
+});

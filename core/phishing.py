@@ -14,17 +14,16 @@ from dataclasses import dataclass, field
 from core.ollama_client import chat
 from core import scam_patterns as P
 
-SYSTEM_PROMPT = """Sen Türkçe SMS/e-posta dolandırıcılık (smishing/phishing) asistanısın.
-SADECE tek JSON yaz. Markdown yok.
+SYSTEM_PROMPT = """Sen Türkçe phishing asistanısın. SADECE tek satır/kısa JSON yaz.
+Markdown, açıklama, kod çiti YOK.
 
-Şema:
-{"risk":"dusuk"|"orta"|"yuksek","skor":0-100,"gerekceler":["..."],"oneriler":["..."]}
+Şema (alan adları birebir):
+{"risk":"dusuk"|"orta"|"yuksek","skor":0-100,"gerekceler":["kısa","kısa"],"oneriler":["kısa","kısa"]}
 
-Yüksek risk örnekleri: sahte banka/kargo linki, savcılık-uzlaştırma+telefon,
-e-Devlet askıya alma, HGS/gümrük ücreti, IBAN'a EFT isteği, kripto "hesabın tehlikede",
-istenmeyen hediye/maket.
-Düşük risk: arkadaş/toplantı maili, link-telefon-IBAN-tehdit yok.
-"gündem/toplantı" şüpheli DEĞİL. Abartma.
+KURALLAR:
+- gerekceler/oneriler en fazla 3 madde, her madde en fazla 8 kelime
+- Orijinal SMS/e-postayı gerekçeye KOPYALAMA
+- skor'u kural özetine yakın tut
 """
 
 
@@ -37,28 +36,63 @@ class PhishingResult:
     ham: str = ""
     json_ok: bool = True
     kural_skoru: int = 0
+    # skipped_speed | ok | failed | bad_json
+    llm_status: str = "ok"
+
+
+def _repair_json_fragment(fragment: str) -> str:
+    """Küçük modelin yarıda kestiği JSON'u kapatmaya çalış."""
+    s = fragment.strip()
+    # Trailing virgül / yarım string
+    s = re.sub(r",\s*$", "", s)
+    # Açık string varsa kapat
+    if s.count('"') % 2 == 1:
+        s += '"'
+    # Açık dizi / nesne kapat
+    open_sq = s.count("[") - s.count("]")
+    open_br = s.count("{") - s.count("}")
+    s += "]" * max(0, open_sq)
+    s += "}" * max(0, open_br)
+    return s
 
 
 def _extract_json(text: str) -> dict | None:
-    text = text.strip()
-    try:
-        data = json.loads(text)
-        if isinstance(data, dict):
-            return data
-    except json.JSONDecodeError:
-        pass
-    m = re.search(r"\{[\s\S]*\}", text)
-    if not m:
-        return None
-    try:
-        data = json.loads(m.group(0))
-        return data if isinstance(data, dict) else None
-    except json.JSONDecodeError:
-        return None
+    text = (text or "").strip()
+    # ```json ... ``` temizle
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+
+    candidates: list[str] = [text]
+    m = re.search(r"\{[\s\S]*", text)
+    if m:
+        candidates.append(m.group(0))
+        # İlk tam {...} dene
+        m2 = re.search(r"\{[\s\S]*\}", text)
+        if m2:
+            candidates.insert(0, m2.group(0))
+
+    for raw in candidates:
+        for variant in (raw, _repair_json_fragment(raw)):
+            try:
+                data = json.loads(variant)
+                if isinstance(data, dict) and ("risk" in data or "skor" in data):
+                    return data
+            except json.JSONDecodeError:
+                continue
+    return None
 
 
 def _hits(text: str, words: list[str]) -> list[str]:
     return [w for w in words if w in text]
+
+
+def _mask_ibans(text: str) -> tuple[str, list[str]]:
+    """IBAN'ları bul; telefon regex'inin IBAN içinden sahte numara çıkarmasını engelle."""
+    ibans = P.IBAN_RE.findall(text)
+    masked = text
+    for iban in ibans:
+        masked = masked.replace(iban, " " * len(iban))
+    return masked, list(ibans)
 
 
 def heuristic_score(text: str) -> tuple[int, list[str]]:
@@ -68,8 +102,9 @@ def heuristic_score(text: str) -> tuple[int, list[str]]:
     reasons: list[str] = []
 
     urls = P.URL_RE.findall(text)
-    phones = P.PHONE_RE.findall(text)
-    ibans = P.IBAN_RE.findall(text)
+    masked, ibans = _mask_ibans(text)
+    phones = P.PHONE_RE.findall(masked)  # IBAN maskelendikten sonra
+    ig_hits = P.INSTAGRAM_RE.findall(text)
 
     if urls:
         score += 22
@@ -80,12 +115,24 @@ def heuristic_score(text: str) -> tuple[int, list[str]]:
     if P.SHORT_LINK.search(text):
         score += 12
         reasons.append("Kısaltılmış link (bit.ly vb.)")
+    if getattr(P, "LOOKALIKE_HOST", None) and P.LOOKALIKE_HOST.search(text):
+        score += 28
+        reasons.append("Kurum/marka taklidi domain (lookalike)")
+    if getattr(P, "PHISH_PATH", None) and P.PHISH_PATH.search(text):
+        score += 14
+        reasons.append("Login/verify/ödeme path'li şüpheli link")
+    if getattr(P, "TEL_LINK", None) and P.TEL_LINK.search(text):
+        score += 10
+        reasons.append("tel: linki (arama tuzağı)")
     if phones:
         score += 12
         reasons.append(f"Arama numarası: {phones[0]}")
     if ibans:
-        score += 28
-        reasons.append(f"IBAN paylaşılmış: {ibans[0][:34]}…")
+        score += 30
+        reasons.append(f"IBAN paylaşılmış: {ibans[0][:34]}")
+    if ig_hits:
+        score += 12
+        reasons.append(f"Instagram / sosyal hesap: {ig_hits[0][:40]}")
 
     buckets = [
         ("Aciliyet/korku dili", P.RED_WORDS, 10),  # kelime başına, max 3
@@ -95,6 +142,17 @@ def heuristic_score(text: str) -> tuple[int, list[str]]:
         ("Banka/EFT tuzağı dili", P.BANK_SCAM, 20),
         ("Kripto smishing dili", P.CRYPTO_SCAM, 20),
         ("Hediye/çekiliş bait", P.GIFT_BAIT, 24),
+        ("Valilik/bağış IBAN tuzağı", P.SOCIAL_IBAN_SCAM, 28),
+        ("KYC/kimlik doğrulama tuzağı", P.KYC_SCAM, 22),
+        ("WhatsApp/Telegram/uzaktan erişim", P.MESSENGER_SCAM, 24),
+        ("Operatör/eSIM/fatura", P.TELCO_SCAM, 18),
+        ("Sahte tech support / hesap askı", P.TECH_SUPPORT_SCAM, 22),
+        ("Yatırım/forex tuzağı", P.INVEST_SCAM, 24),
+        ("İş/romance/gönderi ücreti", P.JOB_ROMANCE_SCAM, 22),
+        ("Vergi/SGK/iade bait", P.REFUND_SCAM, 22),
+        ("Fatura/QR ödeme tuzağı", P.INVOICE_QR_SCAM, 20),
+        ("OTP/şifre paylaşma baskısı", P.OTP_PRESSURE, 30),
+        ("CEO/muhasebe fraud dili", P.CEO_FRAUD, 26),
     ]
     found_any_scam_bucket = False
     for label, words, weight in buckets:
@@ -132,6 +190,48 @@ def heuristic_score(text: str) -> tuple[int, list[str]]:
     ):
         score += 15
         reasons.append("IBAN + ödeme/EFT baskısı")
+    if _hits(t, P.OTP_PRESSURE) and (phones or "whatsapp" in t or "telegram" in t):
+        score += 20
+        reasons.append("OTP/şifre isteme + iletişim kanalı (asla paylaşma)")
+        score = max(score, 80)
+    if _hits(t, P.MESSENGER_SCAM) and (
+        "anydesk" in t or "teamviewer" in t or "uzaktan" in t
+    ):
+        score += 18
+        reasons.append("Uzaktan erişim + mesajlaşma tuzağı")
+        score = max(score, 75)
+    if _hits(t, P.INVEST_SCAM) and (urls or phones or "whatsapp" in t):
+        score += 15
+        reasons.append("Yatırım vaadi + dış kanal")
+        score = max(score, 70)
+    if _hits(t, P.TECH_SUPPORT_SCAM) and urls:
+        score += 15
+        reasons.append("Hesap askıya alma iddiası + link")
+        score = max(score, 70)
+    if _hits(t, P.REFUND_SCAM) and urls:
+        score += 15
+        reasons.append("İade/ödeme bait + link")
+        score = max(score, 68)
+    if _hits(t, P.KYC_SCAM) and urls:
+        score += 15
+        reasons.append("KYC/kimlik + dış link (resmi süreç değil)")
+        score = max(score, 70)
+
+    # Klasik IG/sosyal: "Valilik onaylı IBAN" + IBAN (+ Instagram)
+    social_iban = _hits(t, P.SOCIAL_IBAN_SCAM)
+    if ibans and social_iban:
+        score += 25
+        reasons.append(
+            "Kamu onayı iddiası + kişisel IBAN = sık bağış dolandırıcılığı"
+        )
+        score = max(score, 85)
+    elif ibans and ig_hits:
+        score += 20
+        reasons.append("Instagram hesabı ile IBAN paylaşımı (yüksek riskli kalıp)")
+        score = max(score, 75)
+    elif ibans and ("izin no" in t or "valilik" in t):
+        score = max(score, 80)
+        reasons.append("Valilik/izin no + IBAN kalıbı")
 
     forwarded = (
         "forwarded message" in t
@@ -208,32 +308,42 @@ def analyze_text(text: str, *, model: str) -> PhishingResult:
             ham="",
             json_ok=True,
             kural_skoru=0,
+            llm_status="skipped_speed",
         )
 
     kural_skor, kural_gerekce = heuristic_score(text)
-    user_prompt = (
-        f"Kural özeti (doğru kabul et): skor≈{kural_skor}, sinyaller={kural_gerekce}\n"
-        f"Metin:\n---\n{text}\n---\n"
-        "Sadece JSON döndür. Skoru kural özetine yakın tut."
-    )
 
     ham = ""
     llm_gerekce: list[str] = []
     llm_oneriler: list[str] = []
     llm_skor: int | None = None
     json_ok = True
+    llm_status = "ok"
 
+    # Her analizde LLM çağrılır (kullanıcı isteği: atlama yok).
+    user_prompt = (
+        f"kural_skor={kural_skor}; sinyaller={kural_gerekce[:4]}\n"
+        f"metin:\n{text[:500]}\n"
+        'Örnek çıktı: {"risk":"yuksek","skor":90,"gerekceler":["sahte e-devlet linki"],'
+        '"oneriler":["linke tiklama"]}\n'
+        "Şimdi SADECE JSON:"
+    )
     try:
         ham = chat(
             user_prompt,
             system=SYSTEM_PROMPT,
             model=model,
-            temperature=0.1,
+            temperature=0.0,
+            timeout=90.0,
+            num_predict=256,
         )
+
         data = _extract_json(ham)
         if data is None:
             json_ok = False
+            llm_status = "bad_json"
         else:
+            llm_status = "ok"
             try:
                 llm_skor = int(data.get("skor", kural_skor))
             except (TypeError, ValueError):
@@ -248,7 +358,8 @@ def analyze_text(text: str, *, model: str) -> PhishingResult:
             llm_oneriler = [str(x) for x in o if str(x).strip()][:4]
     except Exception as e:
         json_ok = False
-        ham = f"(LLM atlandı: {e})"
+        llm_status = "failed"
+        ham = f"LLM çağrısı başarısız; skor yine kurallardan.\nDetay: {e}"
 
     if llm_skor is None:
         skor = kural_skor
@@ -281,4 +392,5 @@ def analyze_text(text: str, *, model: str) -> PhishingResult:
         ham=ham,
         json_ok=json_ok,
         kural_skoru=kural_skor,
+        llm_status=llm_status,
     )

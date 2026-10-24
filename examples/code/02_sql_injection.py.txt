@@ -1,0 +1,13 @@
+# ZAFİYET: SQL Injection (OWASP A03 · CWE-89)
+# NEDEN TEHLİKELİ?
+# - user_id dışarıdan geliyorsa saldırgan şunu yazabilir: 1 OR 1=1--
+# - f-string / + ile SQL kurmak, girdinin "komut" haline gelmesine izin verir.
+# - Sonuç: tüm tabloyu okuma, silme, admin olma.
+# DOĞRUSU: conn.execute("SELECT ... WHERE id = ?", (user_id,))
+
+def get_user(conn, user_id):
+    q = f"SELECT * FROM users WHERE id = {user_id}"
+    return conn.execute(q)
+
+def search(conn, name):
+    return conn.execute("SELECT * FROM users WHERE name = '" + name + "'")

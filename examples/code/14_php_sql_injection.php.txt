@@ -1,0 +1,8 @@
+<?php
+// SecLens eğitim örneği — PHP SQL Injection (CWE-89, OWASP A03)
+// NEDEN zayıf: $_POST değeri SQL string'ine gömülüp mysqli_query ile çalıştırılıyor.
+// Doğru: prepared statement + bind_param.
+
+$username = $_POST['username'];
+$query = "SELECT * FROM users WHERE username = '$username'";
+$result = mysqli_query($conn, $query);

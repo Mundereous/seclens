@@ -1,4 +1,4 @@
-"""SecLens UI ekran görüntüleri — README için."""
+"""SecLens UI ekran görüntüleri — README için (Mod 1 + Mod 2)."""
 
 from __future__ import annotations
 
@@ -13,24 +13,28 @@ BASE = "http://127.0.0.1:8501"
 
 
 def wait_streamlit(page) -> None:
-    page.goto(BASE, wait_until="networkidle", timeout=60000)
-    page.wait_for_selector("text=SecLens", timeout=60000)
-    page.wait_for_timeout(1500)
+    page.goto(BASE, wait_until="networkidle", timeout=90000)
+    page.wait_for_selector("text=SecLens", timeout=90000)
+    page.wait_for_timeout(2000)
 
 
-def set_textarea(page, text: str) -> None:
-    # Streamlit text_area
-    area = page.locator("textarea").first
+def set_textarea(page, text: str, *, label: str | None = None) -> None:
+    if label:
+        area = page.get_by_label(label)
+    else:
+        area = page.locator("textarea:visible").first
     area.click()
     area.fill(text)
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(400)
 
 
-def click_analyze(page) -> None:
-    page.get_by_role("button", name="Analiz et").click()
-    # Sonuç gelsin
-    page.wait_for_selector("text=Skor:", timeout=120000)
-    page.wait_for_timeout(1000)
+def click_named(page, name: str) -> None:
+    page.get_by_role("button", name=name).click()
+
+
+def open_tab(page, label: str) -> None:
+    page.get_by_role("tab", name=label).click()
+    page.wait_for_timeout(800)
 
 
 def main() -> None:
@@ -38,34 +42,94 @@ def main() -> None:
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={"width": 1400, "height": 900})
+        page = browser.new_page(viewport={"width": 1440, "height": 960})
 
+        # 01 — home (Mod 1)
         wait_streamlit(page)
         page.screenshot(path=str(OUT / "01_home.png"), full_page=True)
 
-        # Yüksek risk: uzlaştırma
+        # 02 — phishing yüksek risk
         scam = (EXAMPLES / "scam_uzlastirma.txt").read_text(encoding="utf-8")
-        set_textarea(page, scam)
-        click_analyze(page)
+        set_textarea(page, scam, label="Metni yapıştır")
+        click_named(page, "Analiz et")
+        page.wait_for_selector("text=Skor:", timeout=180000)
+        page.wait_for_timeout(1200)
         page.screenshot(path=str(OUT / "02_uzlastirma_high_risk.png"), full_page=True)
 
-        # Düşük risk: güvenli e-posta
+        # 03 — güvenli e-posta
         page.reload(wait_until="networkidle")
         page.wait_for_selector("text=SecLens")
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(2000)
         safe = (EXAMPLES / "safe_email.txt").read_text(encoding="utf-8")
-        set_textarea(page, safe)
-        click_analyze(page)
+        set_textarea(page, safe, label="Metni yapıştır")
+        click_named(page, "Analiz et")
+        page.wait_for_selector("text=Skor:", timeout=180000)
+        page.wait_for_timeout(1200)
         page.screenshot(path=str(OUT / "03_safe_email_low_risk.png"), full_page=True)
 
-        # IBAN tuzağı
+        # 04 — IBAN / EFT
         page.reload(wait_until="networkidle")
         page.wait_for_selector("text=SecLens")
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(2000)
         iban = (EXAMPLES / "scam_iban_eft.txt").read_text(encoding="utf-8")
-        set_textarea(page, iban)
-        click_analyze(page)
+        set_textarea(page, iban, label="Metni yapıştır")
+        click_named(page, "Analiz et")
+        page.wait_for_selector("text=Skor:", timeout=180000)
+        page.wait_for_timeout(1200)
         page.screenshot(path=str(OUT / "04_iban_eft_scam.png"), full_page=True)
+
+        # 05 — OTP / WhatsApp (yeni phishing kuralları)
+        page.reload(wait_until="networkidle")
+        page.wait_for_selector("text=SecLens")
+        page.wait_for_timeout(2000)
+        otp = (EXAMPLES / "scam_otp_whatsapp.txt").read_text(encoding="utf-8")
+        set_textarea(page, otp, label="Metni yapıştır")
+        click_named(page, "Analiz et")
+        page.wait_for_selector("text=Skor:", timeout=180000)
+        page.wait_for_timeout(1200)
+        page.screenshot(path=str(OUT / "05_otp_whatsapp_scam.png"), full_page=True)
+
+        # 06 — Mod 2 kod: Twisted / httpoxy
+        page.reload(wait_until="networkidle")
+        page.wait_for_selector("text=SecLens")
+        page.wait_for_timeout(2000)
+        open_tab(page, "2 · Kod (güvenlik)")
+        code = (EXAMPLES / "code" / "11_twisted_httpoxy.py.txt").read_text(
+            encoding="utf-8"
+        )
+        set_textarea(page, code, label="Kod yapıştır")
+        click_named(page, "Tara")
+        page.wait_for_selector("text=Risk skoru:", timeout=60000)
+        page.wait_for_timeout(1000)
+        page.screenshot(path=str(OUT / "06_code_twisted_high.png"), full_page=True)
+
+        # 07 — Mod 2: PHP SQLi
+        page.reload(wait_until="networkidle")
+        page.wait_for_selector("text=SecLens")
+        page.wait_for_timeout(2000)
+        open_tab(page, "2 · Kod (güvenlik)")
+        php = (EXAMPLES / "code" / "14_php_sql_injection.php.txt").read_text(
+            encoding="utf-8"
+        )
+        set_textarea(page, php, label="Kod yapıştır")
+        click_named(page, "Tara")
+        page.wait_for_selector("text=Risk skoru:", timeout=60000)
+        page.wait_for_timeout(1000)
+        page.screenshot(path=str(OUT / "07_code_php_sqli.png"), full_page=True)
+
+        # 08 — Mod 2: IDOR
+        page.reload(wait_until="networkidle")
+        page.wait_for_selector("text=SecLens")
+        page.wait_for_timeout(2000)
+        open_tab(page, "2 · Kod (güvenlik)")
+        idor = (EXAMPLES / "code" / "13_idor_user_profile.js.txt").read_text(
+            encoding="utf-8"
+        )
+        set_textarea(page, idor, label="Kod yapıştır")
+        click_named(page, "Tara")
+        page.wait_for_selector("text=Risk skoru:", timeout=60000)
+        page.wait_for_timeout(1000)
+        page.screenshot(path=str(OUT / "08_code_idor.png"), full_page=True)
 
         browser.close()
 

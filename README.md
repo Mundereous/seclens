@@ -1,35 +1,52 @@
 # SecLens
 
-**Open-weight AI security assistant** focused on Turkish SMS/email smishing & phishing detection.
+**Open-weight AI güvenlik asistanı** — Türkçe smishing/phishing analizi + eğitim amaçlı mini-SAST (kod tarama).
 
 Hacktoberfest 2026 · [Best Open-Source AI Project](https://www.mlh.com/opensource-ai)  
 Repo: [github.com/Mundereous/seclens](https://github.com/Mundereous/seclens)
 
-> Educational / awareness tool. **Not** a replacement for antivirus, bank security products, or forensic expertise.
+> Eğitim / farkındalık aracı. Antivirus, banka güvenliği veya adli bilişim yerine geçmez.
 
-| TR | [Türkçe anlatım ↓](#seclens-türkçe) |
-|----|-------------------------------------|
-| EN | [English overview ↓](#seclens-english) |
+| | |
+|--|--|
+| **TR** | [Türkçe ↓](#seclens-türkçe) |
+| **EN** | [English ↓](#seclens-english) |
 
 ---
 
 ## Screenshots
 
-### Home — Mod 1 text analysis UI
+### 1 · Ana ekran (Mod 1)
 
 ![SecLens home](docs/screenshots/01_home.png)
 
-### High risk — fake “uzlaştırma / savcılık” SMS
+### 1 · Yüksek risk — sahte uzlaştırma / savcılık SMS
 
-![High risk uzlastirma](docs/screenshots/02_uzlastirma_high_risk.png)
+![Uzlastirma](docs/screenshots/02_uzlastirma_high_risk.png)
 
-### Low risk — normal meeting email
+### 1 · Düşük risk — normal toplantı e-postası
 
-![Low risk safe email](docs/screenshots/03_safe_email_low_risk.png)
+![Safe email](docs/screenshots/03_safe_email_low_risk.png)
 
-### High risk — IBAN / EFT bait
+### 1 · Yüksek risk — IBAN / EFT tuzağı
 
-![IBAN EFT scam](docs/screenshots/04_iban_eft_scam.png)
+![IBAN EFT](docs/screenshots/04_iban_eft_scam.png)
+
+### 1 · Yüksek risk — OTP + WhatsApp / AnyDesk
+
+![OTP WhatsApp](docs/screenshots/05_otp_whatsapp_scam.png)
+
+### 2 · Kod — Twisted `/root` + CGI (httpoxy)
+
+![Code Twisted](docs/screenshots/06_code_twisted_high.png)
+
+### 2 · Kod — PHP SQL Injection
+
+![Code PHP SQLi](docs/screenshots/07_code_php_sqli.png)
+
+### 2 · Kod — IDOR (`userProfile`)
+
+![Code IDOR](docs/screenshots/08_code_idor.png)
 
 ---
 
@@ -38,63 +55,62 @@ Repo: [github.com/Mundereous/seclens](https://github.com/Mundereous/seclens)
 
 ### What it does
 
-One Streamlit app with three planned modes; **Mode 1 is ready**:
-
 | Mode | Status | Purpose |
 |------|--------|---------|
-| **1 · Text** | Ready | Turkish SMS/email → risk score + reasons + advice |
-| **2 · Code** | Planned | Snippet scan (secrets, SQLi, XSS, …) |
+| **1 · Text** | Ready | Turkish SMS/email → risk 0–100 + reasons + advice |
+| **2 · Code** | Ready | Mini-SAST: ~**185** OWASP/CWE rules (Bandit/Semgrep-inspired) |
 | **3 · Image** | Planned | Login-page screenshot phishing UI check |
 
-### How Mode 1 works (important)
+### Architecture (no fine-tuning)
 
-Two layers — **not** neural fine-tuning:
+1. **Rules first** — most of the score comes from curated patterns (`core/scam_patterns.py`, `core/code_rules.py`).
+2. **Open-weight LLM** via [Ollama](https://ollama.com) (`llama3.2:1b`) — Turkish explanations (Mode 1; Mode 2 optional narrative).
 
-1. **Rule-based signals** (`core/scam_patterns.py`) — common Turkish fraud patterns (keywords, links, phones, IBANs). Most of the score comes from here.
-2. **Open-weight LLM** via [Ollama](https://ollama.com) (`llama3.2:1b`) — writes Turkish explanations/advice from the rule summary.
+We did **not** fine-tune model weights. “Training” = public scam/SAST patterns turned into detectable rules.
 
-“What we trained on” means: **we curated detection rules from public warnings and real scam templates**, then wired a small local LLM for natural-language output. We did **not** fine-tune model weights for this MVP.
+### Mode 1 — phishing / smishing (~400+ phrase signals)
 
-### What Mode 1 detects
+| Category | Examples | Demo |
+|----------|----------|------|
+| Fake bank / cargo | Block, “update”, fee + shady link | `phishing_*.txt` |
+| Fake prosecution / mediation | “last day”, “call now” | `scam_uzlastirma.txt` |
+| e-Devlet / public sector spoof | Suspended account + external link | `scam_edevlet.txt` |
+| IBAN / EFT / “Valilik onaylı” | Personal IBAN + urgency | `scam_iban_eft.txt`, `scam_valilik_iban.txt` |
+| Crypto / gift bait | Short link, “you won” | `scam_kripto.txt`, `scam_hediye_maket.txt` |
+| OTP + WhatsApp / AnyDesk | “send me the SMS code” | `scam_otp_whatsapp.txt` |
+| Fake tech support | Apple ID / Netflix “suspended” | `scam_tech_support.txt` |
+| Forex / investment | “guaranteed daily %” | `scam_invest_forex.txt` |
+| Safe controls | Meeting / friend texts | `safe_*.txt` |
 
-| Pattern | Signal examples | Demo file |
-|---------|-----------------|-----------|
-| Fake bank SMS | Block / “security update” + shady link | `examples/phishing_sms.txt` |
-| Fake cargo email | Courier + fee/return + link | `examples/phishing_email.txt` |
-| Fake prosecution / mediation | “last day”, “call now” + phone | `examples/scam_uzlastirma.txt` |
-| Fake e-Devlet | Account suspended + external link | `examples/scam_edevlet.txt` |
-| Customs / HGS / cargo | “pay customs”, “update address” | `examples/scam_kargo_gumruk.txt` |
-| Crypto smishing | “account at risk” + short link | `examples/scam_kripto.txt` |
-| IBAN / EFT bait | IBAN + “transfer now / discount ends” | `examples/scam_iban_eft.txt` |
-| Gift / model-kit spam | “special gift”, forwarded no-reply mail | `examples/scam_hediye_maket.txt` |
-| Safe controls | Meeting / friend messages (low risk) | `examples/safe_*.txt` |
+Also: suspicious TLDs, IP URLs, shorteners, TR phones/IBANs, lookalike hosts, login/verify URL paths, brand+link combos.  
+Extra buckets: KYC, telco/eSIM, CEO fraud, invoice/QR, refund bait, job/romance scams.
 
-Also flags: suspicious TLDs, IP URLs, bit.ly-style shorteners, TR phone numbers, TR IBANs, brand name + link/phone combos.
+### Mode 2 — mini-SAST (~185 rules)
 
-### Sources used for the rule set
+OWASP Top 10–oriented regex + small multi-line windows (IDOR) + XML alias tracking:
 
-Public / institutional awareness material (defensive use), including:
+| Family | Examples |
+|--------|----------|
+| Secrets / crypto | Hardcoded keys, MD5/SHA1 passwords, weak TLS, JWT `none` |
+| Injection | SQLi (Python/PHP/JS/Java/…), RCE, SSTI, LDAP, XSS |
+| Access control | IDOR, mass assignment, path traversal, zip/tar slip |
+| Deserialization | pickle, yaml.load, marshal, Java/`BinaryFormatter` |
+| XXE | `xml.sax` / etree / minidom (+ `defusedxml` excluded) |
+| Misconfig | Flask debug, CORS, CGI/httpoxy, Docker privileged |
+| Trojan Source | Unicode bidi (CVE-2021-42574) |
 
-- Turkish Interior Ministry / police operation notes (e-Devlet aid links, “criminal investigation last day” SMS)  
-- BTK + police smishing warnings (fake cargo / bank update SMS)  
-- [PTT official fraud warning](https://www.ptt.gov.tr/haberler/ptt-as-dolandiricilik-faaliyetlerine-karsi-vatandaslari-uyariyor-d20119c1273f42ac856e02f814b8d959)  
-- Press / complaint platforms: crypto “account at risk”, IBAN+EFT discount traps  
-- e-Devlet phishing awareness write-ups  
+Samples: `examples/code/01`–`15` + Bandit files under `examples/code/external/`.
 
-Code: `core/scam_patterns.py` · Scoring merge: `core/phishing.py`
+### Model & deps
 
-### Model & dependencies
+| Piece | Detail |
+|-------|--------|
+| Model | [`llama3.2:1b`](https://ollama.com/library/llama3.2) (small LM for the challenge) |
+| Runtime | Ollama `http://127.0.0.1:11434` |
+| Model license | [Llama 3.2 Community](https://www.llama.com/llama3_2/license/) |
+| UI | Streamlit · HTTP `requests` · Pillow (Mode 3 later) |
 
-| Component | Detail |
-|-----------|--------|
-| **Model** | [`llama3.2:1b`](https://ollama.com/library/llama3.2) (~1B params → **small** LM for this challenge) |
-| **Runtime** | Ollama local API (`http://127.0.0.1:11434`) |
-| **Model terms** | Llama 3.2 Community License — [Meta Llama license](https://www.llama.com/llama3_2/license/) |
-| **UI** | Streamlit |
-| **HTTP** | `requests` |
-| **Images (later)** | Pillow |
-
-Open-weight ≠ the whole project is open source by default. **This repo is MIT**; the model keeps its own license. Weights are **not** vendored here.
+Repo license **MIT**; model license stays with Meta. Weights are **not** in this repo.
 
 ### Quick start
 
@@ -102,11 +118,11 @@ Open-weight ≠ the whole project is open source by default. **This repo is MIT*
 git clone https://github.com/Mundereous/seclens.git
 cd seclens
 python3 -m pip install -r requirements.txt
-ollama pull llama3.2:1b   # Ollama app must be running
+ollama pull llama3.2:1b
 streamlit run app.py
 ```
 
-Open **http://127.0.0.1:8501** → pick an example → **Analiz et**.
+Open **http://127.0.0.1:8501** → Mode 1 **Analiz et** or Mode 2 **Tara**.
 
 ---
 
@@ -115,28 +131,25 @@ Open **http://127.0.0.1:8501** → pick an example → **Analiz et**.
 
 ### Ne yapıyor?
 
-Tek Streamlit uygulaması; **Mod 1 hazır**:
-
 | Mod | Durum | Ne yapar |
 |-----|--------|----------|
-| **1 · Metin** | Hazır | Türkçe SMS / e-posta → risk skoru + gerekçe + öneri |
-| **2 · Kod** | Yakında | Snippet’te secret, SQLi, XSS vb. |
+| **1 · Metin** | Hazır | Türkçe SMS/e-posta → risk + gerekçe + öneri (**~400+** kalıp) |
+| **2 · Kod** | Hazır | Mini-SAST (**~185** OWASP/CWE kuralı) |
 | **3 · Görüntü** | Yakında | Login screenshot phishing UI |
 
-### Mod 1 nasıl çalışıyor?
+### Nasıl çalışıyor?
 
-1. **Kurallar** (`core/scam_patterns.py`) — skorun çoğu  
-2. **Ollama + `llama3.2:1b`** — Türkçe gerekçe / öneri  
+- **Kurallar** skoru belirler (phishing + kod).  
+- **Ollama + llama3.2:1b** Türkçe açıklama üretir.  
+- **Fine-tune yok** — kamu uyarıları + Bandit/Semgrep kalıplarından kural seti.
 
-**Fine-tune yok.** “Eğittik” = kamu uyarılarından kalıp listesini zenginleştirdik.
+### Mod 1 — neler eklendi?
 
-### Neleri tespit ediyor?
+Uzlaştırma, e-Devlet, kargo/gümrük, kripto, IBAN/valilik, hediye spam’e ek olarak: **OTP/WhatsApp/AnyDesk**, **tech support**, **forex**, KYC, eSIM, CEO fraud, QR/fatura, lookalike URL vb.
 
-Yukarıdaki İngilizce tablonun aynısı (`examples/` klasörü). Ek sinyaller: şüpheli TLD, IP link, kısa link, TR telefon, TR IBAN, marka+link.
+### Mod 2 — neler eklendi?
 
-### Kaynaklar
-
-İçişleri/Emniyet duyuruları, BTK smishing uyarıları, [PTT dolandırıcılık uyarısı](https://www.ptt.gov.tr/haberler/ptt-as-dolandiricilik-faaliyetlerine-karsi-vatandaslari-uyariyor-d20119c1273f42ac856e02f814b8d959), kripto/IBAN haberleri, e-Devlet phishing farkındalık metinleri.
+Secret/SQLi/XSS’ten IDOR, PHP SQLi, parola+MD5, XXE (`xml.sax`), Trojan Source, Twisted/httpoxy, tar slip, JWT, CORS… Bandit örnekleriyle karşılaştırılabilir.
 
 ### Kurulum
 
@@ -148,29 +161,33 @@ ollama pull llama3.2:1b
 streamlit run app.py
 ```
 
-Tarayıcı: **http://127.0.0.1:8501**
-
 ---
 
 ## Project structure
 
 ```
 seclens/
-├── app.py
+├── app.py                      # Streamlit UI (3 tabs)
 ├── requirements.txt
-├── LICENSE                 # MIT
+├── LICENSE                     # MIT
 ├── README.md
+├── DEMO-SUNUM-NOTLARI.md
+├── KOD-TEST-REHBERI.md
 ├── HACKTOBERFEST-BAGLAM.md
-├── docs/screenshots/       # UI captures for this README
+├── docs/screenshots/           # README captures
 ├── scripts/capture_screenshots.py
 ├── core/
 │   ├── ollama_client.py
-│   ├── phishing.py
-│   └── scam_patterns.py
+│   ├── phishing.py             # Mod 1 score + LLM merge
+│   ├── scam_patterns.py        # TR phishing signals
+│   ├── code_rules.py           # Mod 2 RULES + scan_code
+│   └── code_scan.py            # Mod 2 analyze wrapper
 └── examples/
+    ├── scam_*.txt / safe_*.txt / phishing_*.txt
+    └── code/                   # 01–15 + Bandit external/
 ```
 
-Regenerate screenshots (app + Ollama must be running):
+Regenerate screenshots (app + Ollama running):
 
 ```bash
 python3 -m pip install playwright
@@ -182,11 +199,11 @@ python3 scripts/capture_screenshots.py
 
 ## Challenge checklist
 
-- [x] Open-weight AI is central (Ollama + Llama 3.2)  
+- [x] Open-weight AI central (Ollama + Llama 3.2)  
 - [x] Public GitHub + [MIT](LICENSE)  
-- [x] README: what / how / model + deps + model license link + screenshots  
-- [x] Working demo (Mode 1)  
-- [ ] Mode 2 code scan  
+- [x] README: what / how / model + deps + license + screenshots  
+- [x] Mode 1 phishing (expanded TR rules)  
+- [x] Mode 2 code mini-SAST (~185 rules)  
 - [ ] Mode 3 screenshot  
 - [ ] Optional cloud deploy  
 
@@ -194,9 +211,9 @@ python3 scripts/capture_screenshots.py
 
 ## Ethics
 
-- Examples are **synthetic / anonymized** training texts — no real victim PII dumps.  
-- Goal: warn about patterns; no automated blocking or legal accusation.  
-- In Turkey, suspicious SMS can be reported to **5010**.
+- Examples are **synthetic / anonymized** — no real victim PII dumps.  
+- Warn about patterns; no automated blocking or legal accusation.  
+- In Turkey, suspicious SMS → **5010**.
 
 ---
 
@@ -204,4 +221,4 @@ python3 scripts/capture_screenshots.py
 
 Code: [MIT](LICENSE) · Copyright (c) 2026 Mundereous  
 
-Model: Llama 3.2 Community License (Meta) — downloaded via Ollama, not stored in this repo.
+Model: Llama 3.2 Community License (Meta) — via Ollama, not stored in this repo.

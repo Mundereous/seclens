@@ -1,0 +1,14 @@
+# ZAFİYET: Twisted CGI + hassas dizin (httpoxy / CWE-552)
+# NEDEN TEHLİKELİ?
+# 1) static.File("/root") → root ev dizini internete açılır (SSH key, config sızabilir).
+# 2) twcgi.CGIScript → CGI ortamında Proxy header httpoxy (HTTP_PROXY) riski.
+# 3) listenTCP(80) → genelde root yetkisi ister.
+# DOĞRUSU: public klasör sun; CGI yerine modern app server; nginx + TLS.
+
+from twisted.internet import reactor
+from twisted.web import static, server, twcgi
+
+root = static.File("/root")
+root.putChild("login.cgi", twcgi.CGIScript("/var/www/cgi-bin/login.py"))
+reactor.listenTCP(80, server.Site(root))
+reactor.run()

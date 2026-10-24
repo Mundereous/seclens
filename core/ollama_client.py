@@ -44,8 +44,9 @@ def chat(
     *,
     system: str | None = None,
     model: str = DEFAULT_MODEL,
-    timeout: float = 120.0,
-    temperature: float = 0.2,
+    timeout: float = 45.0,
+    temperature: float = 0.1,
+    num_predict: int = 160,
 ) -> str:
     """
     Modele bir mesaj gönder, düz metin cevap al.
@@ -53,29 +54,46 @@ def chat(
     system: modele 'sen kimsin / nasıl davran' talimatı
     prompt: kullanıcının asıl sorusu / metni
     temperature: düşük = daha tutarlı (phishing için iyi)
+    num_predict: max üretilen token (küçük tut → daha hızlı)
     """
     messages: list[dict[str, str]] = []
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
 
+    payload = {
+        "model": model.strip(),
+        "messages": messages,
+        "stream": False,
+        "options": {
+            "temperature": temperature,
+            "num_predict": num_predict,
+            "num_ctx": 2048,
+        },
+    }
     try:
         r = requests.post(
             f"{OLLAMA_URL}/api/chat",
-            json={
-                "model": model,
-                "messages": messages,
-                "stream": False,
-                "options": {"temperature": temperature},
-            },
+            json=payload,
             timeout=timeout,
         )
-        r.raise_for_status()
+    except requests.Timeout as e:
+        raise OllamaError(
+            f"Ollama zaman aşımı ({timeout:.0f}s, model={model}). "
+            "Model yüklü ama yavaş yanıt verdi; tekrar dene veya daha küçük prompt kullan."
+        ) from e
     except requests.RequestException as e:
         raise OllamaError(
-            f"Ollama chat başarısız ({model}). Model indirdin mi? "
-            f"Örnek: `ollama pull {model}`"
+            f"Ollama'ya bağlanılamadı ({model}): {e}. "
+            "Ollama.app açık mı? `curl http://127.0.0.1:11434/api/tags`"
         ) from e
+
+    if r.status_code >= 400:
+        detail = (r.text or "")[:300]
+        raise OllamaError(
+            f"Ollama HTTP {r.status_code} (model={model}). "
+            f"Yanıt: {detail or 'boş'} — model adı doğru mu? `ollama list`"
+        )
 
     data = r.json()
     return data.get("message", {}).get("content", "").strip()

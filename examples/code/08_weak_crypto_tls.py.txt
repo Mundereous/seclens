@@ -1,0 +1,20 @@
+# ZAFİYET: Zayıf kripto + TLS kapalı (OWASP A02/A05 · CWE-328 / CWE-295)
+# NEDEN TEHLİKELİ?
+# - MD5 parola için kırılgandır (gökkuşağı tablosu / hızlı brute-force).
+# - verify=False sertifikayı kontrol etmez → ortadaki adam (MITM) trafiği okuyabilir.
+# - DEBUG=True production'da stack trace ve bazen konsol sızdırır.
+# DOĞRUSU: bcrypt/argon2; verify=True; DEBUG=False.
+
+import hashlib
+import requests
+from flask import Flask
+
+app = Flask(__name__)
+DEBUG = True
+app.run(debug=True)
+
+def store_password(pw):
+    return hashlib.md5(pw.encode()).hexdigest()
+
+def fetch(url):
+    return requests.get(url, verify=False)

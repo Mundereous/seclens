@@ -1,0 +1,14 @@
+# ZAFİYET: OS Command Injection (OWASP A03 · CWE-78)
+# NEDEN TEHLİKELİ?
+# - host = "8.8.8.8; rm -rf /" gibi bir girdi shell'de ek komut çalıştırır.
+# - os.system ve shell=True, girdiyi kabuğa (bash) verir; ; && | ile zincir kurulur.
+# DOĞRUSU: subprocess.run(["ping", "-c", "1", host], shell=False)
+
+import os
+import subprocess
+
+def ping_host(host):
+    os.system(f"ping -c 1 {host}")
+
+def run(cmd):
+    subprocess.call(cmd, shell=True)

@@ -1,0 +1,72 @@
+"""
+KÖTÜ ÖRNEK — bilerek güvensiz (eğitim / SecLens demo).
+OWASP: A02 secrets, A03 injection/XSS, A08 deserialization, A05 misconfig, A10 SSRF.
+"""
+import os
+import pickle
+import subprocess
+import sqlite3
+import requests
+import yaml
+from flask import Flask, request, send_file
+
+app = Flask(__name__)
+DEBUG = True
+
+# A02 — hardcoded credentials (CWE-798)
+API_KEY = "sk-live-super-secret-12345"
+password = "admin123"
+AWS_KEY = "AKIAIOSFODNN7EXAMPLE"
+DATABASE_URL = "postgres://admin:P@ssw0rd@db.internal:5432/app"
+
+# A02 — weak password hashing (CWE-328)
+import hashlib
+def store_password(pw):
+    return hashlib.md5(pw.encode()).hexdigest()
+
+# A03 — SQL Injection (CWE-89)
+def get_user(conn, user_id):
+    q = f"SELECT * FROM users WHERE id = {user_id}"
+    return conn.execute(q)
+
+def search(conn, name):
+    return conn.execute("SELECT * FROM users WHERE name = '" + name + "'")
+
+# A03 — OS command injection (CWE-78)
+def ping_host(host):
+    os.system(f"ping -c 1 {host}")
+
+def run(cmd):
+    subprocess.call(cmd, shell=True)
+
+# A08 — insecure deserialization (CWE-502)
+def load_data(blob):
+    return pickle.loads(blob)
+
+def load_yaml(data):
+    return yaml.load(data)
+
+# A05 — TLS verify off (CWE-295)
+def fetch(url):
+    return requests.get(url, verify=False)
+
+# A10 — SSRF şüphesi (CWE-918)
+def proxy():
+    return requests.get(request.args["url"])
+
+# A01 — path traversal şüphesi (CWE-22)
+def read_user_file(name):
+    return open("/var/data/" + name).read()
+
+def download(name):
+    return send_file("../uploads/" + name)
+
+# A03 — XSS sinks (CWE-79) — JS/HTML karışık demo
+html = "<div>" + user_input + "</div>"
+element.innerHTML = html
+
+# A09 — secret in logs (CWE-532)
+print("login with password=", password)
+logger.info("token=%s", API_KEY)
+
+# TODO: fix auth bypass before prod

@@ -1,0 +1,10 @@
+# ZAFİYET: Cross-Site Scripting / XSS (OWASP A03 · CWE-79)
+# NEDEN TEHLİKELİ?
+# - userInput içinde <script>alert(document.cookie)</script> olabilir.
+# - innerHTML bu metni HTML olarak işler → saldırganın JS'i senin sitenizde çalışır.
+# - Çerez / oturum çalınabilir (özellikle httpOnly yoksa).
+# DOĞRUSU: element.textContent = userInput  veya DOMPurify.sanitize(...)
+
+const userInput = location.hash.slice(1);
+element.innerHTML = "<div>" + userInput + "</div>";
+document.write(userInput);

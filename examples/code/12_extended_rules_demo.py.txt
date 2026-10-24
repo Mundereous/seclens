@@ -1,0 +1,42 @@
+# SecLens eğitim örneği — genişletilmiş kural seti (Bandit / OWASP kalıpları)
+# NEDEN zayıf: birden fazla bağımsız zafiyet sınıfı aynı dosyada.
+
+import marshal
+import shelve
+import tarfile
+import telnetlib
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+# SEC011 — zayıf anahtar boyutu
+key = rsa.generate_private_key(public_exponent=65537, key_size=1024)
+
+# AUTH001 — Flask SECRET_KEY gömülü
+SECRET_KEY = "super-secret-dev-key-do-not-use"
+
+# AUTH002 — JWT imza doğrulaması kapalı
+import jwt
+payload = jwt.decode(token, options={"verify_signature": False})
+
+# DES004 / DES008 — güvensiz serileştirme + tar slip
+obj = marshal.loads(blob)
+with tarfile.open("a.tar") as tf:
+    tf.extractall("/tmp/out")
+
+# NET002 — Telnet cleartext
+tn = telnetlib.Telnet("router.local")
+
+# PTH003 / PTH005 — temp race + world-writable
+import tempfile, os
+path = tempfile.mktemp()
+os.chmod(path, 0o777)
+
+# XSS006 — Django mark_safe
+from django.utils.safestring import mark_safe
+html = mark_safe(user_input)
+
+# CFG012 — HuggingFace trust_remote_code
+from transformers import AutoModel
+AutoModel.from_pretrained("org/model", trust_remote_code=True)
+
+# SSRF003 — cloud metadata
+META = "http://169.254.169.254/latest/meta-data/"
